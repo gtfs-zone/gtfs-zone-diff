@@ -505,16 +505,13 @@ export function diffStopTimes(
     if (kinds.length === 0) {
       continue;
     }
-    const kind: RowChangeKind = (
-      [
-        'changed',
-        'added',
-        'removed',
-        'renamed',
-        'followsRename',
-        'formatting',
-      ] as const
-    ).find((k) => rows[k])!;
+    const kind: RowChangeKind =
+      // Paired on both sides: rows added or removed change it.
+      rows.changed || rows.added || rows.removed
+        ? 'changed'
+        : (['renamed', 'followsRename', 'formatting'] as const).find(
+            (k) => rows[k]
+          )!;
     result.trips.push({ kind, a: t, b: u, rows });
     if (rows.changed || rows.added || rows.removed) {
       groupPair(t, u, changedCols);

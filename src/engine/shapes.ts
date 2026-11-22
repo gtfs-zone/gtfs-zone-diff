@@ -162,16 +162,13 @@ export function diffShapes(
     if (kinds.length === 0) {
       continue;
     }
-    const kind = (
-      [
-        'changed',
-        'added',
-        'removed',
-        'renamed',
-        'followsRename',
-        'formatting',
-      ] as const
-    ).find((k) => counts[k])!;
+    const kind =
+      // Paired on both sides: rows added or removed change it.
+      counts.changed || counts.added || counts.removed
+        ? 'changed'
+        : (['renamed', 'followsRename', 'formatting'] as const).find(
+            (k) => counts[k]
+          )!;
     result.shapes.push({ kind, a, b, rows: counts });
     const ca = sa.shapeCoords(a);
     const cb = sb.shapeCoords(b);
