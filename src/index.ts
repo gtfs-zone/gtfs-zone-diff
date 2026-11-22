@@ -27,7 +27,13 @@ import { MapController } from './map-controller';
 import { HELP_PAGES } from './modules/help-pages';
 import { DOCK_ICONS, NAVBAR_ACTIONS } from './modules/navbar-action-list';
 import { createPageStateManager } from './modules/page-state';
-import { renderPanel } from './modules/panel-view';
+import {
+  CompareFailedError,
+  compareInput,
+  DiffSession,
+} from './modules/diff-client';
+import { renderCompareView, renderPanel } from './modules/panel-view';
+import type { CompareState } from './modules/results-view';
 import { pickSource } from './modules/source-picker';
 import {
   paramsToSources,
@@ -67,15 +73,70 @@ document.getElementById('app-version')!.textContent = __APP_VERSION__;
 const pages = createPageStateManager();
 const panel = document.getElementById('panel-content')!;
 let sources: Sources = { a: null, b: null };
+let session: DiffSession | null = null;
+/** The sources the running or finished comparison was started with. */
+let compared: Sources = { a: null, b: null };
+let compareState: CompareState = { status: 'idle' };
 
 function render(): void {
-  panel.innerHTML = renderPanel(pages.getPageState(), sources);
+  panel.innerHTML = renderPanel(pages.getPageState(), sources, compareState);
+}
+
+function setCompareState(next: CompareState): void {
+  compareState = next;
+  renderCompareView(compareState);
+}
+
+/**
+ * Compare the current sources in a new worker, releasing the previous one.
+ * Does nothing when they are the ones already compared, unless `force`.
+ */
+function startCompare(force = false): void {
+  if (!force && compared.a === sources.a && compared.b === sources.b) {
+    return;
+  }
+  session?.release();
+  session = null;
+  compared = { ...sources };
+  const a = compareInput(sources.a);
+  const b = compareInput(sources.b);
+  if (!a || !b) {
+    compareState = { status: 'idle' };
+    return;
+  }
+  const own = new DiffSession(a, b, {}, (progress) => {
+    if (session === own) {
+      setCompareState({ status: 'running', progress });
+    }
+  });
+  session = own;
+  compareState = { status: 'running', progress: null };
+  own.done.then(
+    (result) => {
+      if (session === own) {
+        setCompareState({ status: 'done', result });
+      }
+    },
+    (err: unknown) => {
+      if (session !== own) {
+        return;
+      }
+      console.error('[compare] failed', err);
+      own.release();
+      setCompareState({
+        status: 'failed',
+        side: err instanceof CompareFailedError ? err.side : null,
+        message: err instanceof Error ? err.message : String(err),
+      });
+    }
+  );
 }
 
 /** Replace both sources and write them to the hash. */
 function setSources(next: Sources): void {
   sources = next;
   pages.setFeedParams(sourcesToParams(sources));
+  startCompare();
   render();
 }
 
@@ -117,6 +178,7 @@ window.addEventListener('hashchange', () => {
   void paramsToSources(window.location.hash.slice(1)).then((next) => {
     sources = next;
     pages.setFeedParams(sourcesToParams(sources), false);
+    startCompare();
     render();
   });
 });
@@ -151,6 +213,10 @@ panel.addEventListener('click', (e) => {
     case 'home':
       navigate({ type: 'home' });
       break;
+    case 'retry':
+      startCompare(true);
+      render();
+      break;
   }
 });
 
@@ -175,6 +241,7 @@ async function boot(): Promise<void> {
   pages.setFeedParams(sourcesToParams(sources), false);
   pages.adoptState(pending);
   pages.syncHash();
+  startCompare();
   render();
 
   if (pending.modal?.type === 'help') {

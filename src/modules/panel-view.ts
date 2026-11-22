@@ -3,6 +3,7 @@
 import { escapeHtml } from 'gtfs-zone-web-common/util/escape-html';
 import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
+import { renderComparison, type CompareState } from './results-view';
 import {
   isLinkable,
   SIDES,
@@ -48,7 +49,7 @@ function sourceCard(side: Side, src: Source | null): string {
     </section>`;
 }
 
-function renderHome(sources: Sources): string {
+function renderHome(sources: Sources, compare: CompareState): string {
   const cards = SIDES.map((side) => sourceCard(side, sources[side])).join('');
   const swap =
     sources.a || sources.b
@@ -68,6 +69,7 @@ function renderHome(sources: Sources): string {
       ${cards}
       <div class="flex justify-end">${swap}</div>
       ${notes.map((n) => `<p class="text-xs opacity-70">${n}</p>`).join('')}
+      <div id="compare-view" class="flex flex-col gap-3">${renderComparison(compare)}</div>
     </div>`;
 }
 
@@ -100,6 +102,18 @@ function renderFocus(loc: Exclude<PageLocation, { type: 'home' }>): string {
     </div>`;
 }
 
-export function renderPanel(loc: PageLocation, sources: Sources): string {
-  return loc.type === 'home' ? renderHome(sources) : renderFocus(loc);
+export function renderPanel(
+  loc: PageLocation,
+  sources: Sources,
+  compare: CompareState
+): string {
+  return loc.type === 'home' ? renderHome(sources, compare) : renderFocus(loc);
+}
+
+/** Redraw only the comparison part of the home panel, when it is shown. */
+export function renderCompareView(compare: CompareState): void {
+  const el = document.getElementById('compare-view');
+  if (el) {
+    el.innerHTML = renderComparison(compare);
+  }
 }

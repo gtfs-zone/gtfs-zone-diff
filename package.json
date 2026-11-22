@@ -47,6 +47,7 @@
     "@maplibre/vt-pbf": "^4.3.3",
     "@tailwindcss/postcss": "^4.3.5",
     "daisyui": "^5.8.2",
+    "diff": "^9.0.0",
     "fflate": "^0.8.3",
     "gtfs-zone-vocab": "github:gtfs-zone/gtfs-zone-vocab#v0.2.0",
     "gtfs-zone-web-common": "github:gtfs-zone/gtfs-zone-web-common#v7.4.0",
