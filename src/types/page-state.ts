@@ -7,6 +7,8 @@ import type { WithModal } from 'gtfs-zone-web-common/ui/page-state-schema';
 export type PageLocation =
   | { type: 'home' }
   | { type: 'file'; file: string }
+  | { type: 'group'; group: string }
+  | { type: 'feed_info' }
   | { type: 'agency'; agency_id: string }
   | { type: 'route'; route_id: string }
   | { type: 'trip'; trip_id: string }

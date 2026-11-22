@@ -7,6 +7,8 @@ const codec = createPageStateCodec<PageLocation, ModalState>({
   typeParam: 'type',
   pages: {
     file: { file: 'file' },
+    group: { group: 'group' },
+    feed_info: {},
     agency: { agency_id: 'agency' },
     route: { route_id: 'route' },
     trip: { trip_id: 'trip' },

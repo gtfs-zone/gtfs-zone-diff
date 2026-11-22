@@ -32,8 +32,9 @@ import {
   compareInput,
   DiffSession,
 } from './modules/diff-client';
-import { renderCompareView, renderPanel } from './modules/panel-view';
-import type { CompareState } from './modules/results-view';
+import type { CompareState } from './modules/compare-status';
+import type { PageContext } from './modules/page-context';
+import { createPanel, crumbsFor } from './modules/panel-view';
 import { pickSource } from './modules/source-picker';
 import {
   paramsToSources,
@@ -41,7 +42,7 @@ import {
   type Side,
   type Sources,
 } from './modules/sources';
-import type { PageState } from './types/page-state';
+import type { PageLocation, PageState } from './types/page-state';
 
 // --- Shell -------------------------------------------------------------------
 
@@ -71,20 +72,43 @@ document.getElementById('app-version')!.textContent = __APP_VERSION__;
 // --- State -------------------------------------------------------------------
 
 const pages = createPageStateManager();
-const panel = document.getElementById('panel-content')!;
 let sources: Sources = { a: null, b: null };
 let session: DiffSession | null = null;
 /** The sources the running or finished comparison was started with. */
 let compared: Sources = { a: null, b: null };
 let compareState: CompareState = { status: 'idle' };
 
+function context(): PageContext {
+  return {
+    sources,
+    compare: compareState,
+    session,
+    href: (state: PageLocation) => `#${pages.buildHash(state)}`,
+  };
+}
+
+const panel = createPanel(document.getElementById('panel-content')!, {
+  context,
+  navigate: (state) => navigate(state),
+  action: (action, arg) => onAction(action, arg),
+});
+
+/** Show the current page from the top, with its trail. */
 function render(): void {
-  panel.innerHTML = renderPanel(pages.getPageState(), sources, compareState);
+  const state = pages.getPageState();
+  panel.show(state, crumbsFor(context(), state));
+}
+
+/** Redraw the current page in place: its data changed, not the page. */
+function refresh(): void {
+  const state = pages.getPageState();
+  panel.setBreadcrumbs(crumbsFor(context(), state));
+  panel.queueRender();
 }
 
 function setCompareState(next: CompareState): void {
   compareState = next;
-  renderCompareView(compareState);
+  refresh();
 }
 
 /**
@@ -137,7 +161,7 @@ function setSources(next: Sources): void {
   sources = next;
   pages.setFeedParams(sourcesToParams(sources));
   startCompare();
-  render();
+  refresh();
 }
 
 function navigate(state: PageState): void {
@@ -179,7 +203,7 @@ window.addEventListener('hashchange', () => {
     sources = next;
     pages.setFeedParams(sourcesToParams(sources), false);
     startCompare();
-    render();
+    refresh();
   });
 });
 
@@ -190,13 +214,9 @@ async function pick(side: Side): Promise<void> {
   }
 }
 
-panel.addEventListener('click', (e) => {
-  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-action]');
-  if (!el) {
-    return;
-  }
-  const side = el.dataset.side as Side | undefined;
-  switch (el.dataset.action) {
+function onAction(action: string, arg: string): void {
+  const side = arg === 'a' || arg === 'b' ? (arg as Side) : null;
+  switch (action) {
     case 'pick':
       if (side) {
         void pick(side);
@@ -210,15 +230,12 @@ panel.addEventListener('click', (e) => {
     case 'swap':
       setSources({ a: sources.b, b: sources.a });
       break;
-    case 'home':
-      navigate({ type: 'home' });
-      break;
     case 'retry':
       startCompare(true);
-      render();
+      refresh();
       break;
   }
-});
+}
 
 document
   .getElementById('help-btn')!
