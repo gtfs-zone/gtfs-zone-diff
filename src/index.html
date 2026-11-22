@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>diff.gtfs.zone - Compare two GTFS feeds</title>
+    <meta
+      name="description"
+      content="Compare two GTFS feeds in your browser: added, removed and changed stops, routes, trips, calendars and shapes, on a map and side by side."
+    />
+    <link rel="canonical" href="https://diff.gtfs.zone/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="gtfs.zone" />
+    <meta property="og:url" content="https://diff.gtfs.zone/" />
+    <meta
+      property="og:title"
+      content="diff.gtfs.zone - Compare two GTFS feeds"
+    />
+    <meta
+      property="og:description"
+      content="Compare two GTFS feeds in your browser, on a map and side by side."
+    />
+    <link rel="icon" type="image/svg+xml" href="logo.svg" />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+
+  <body class="font-sans h-screen overflow-hidden">
+    <noscript>
+      <main class="p-4">
+        diff.gtfs.zone compares two GTFS feeds in your browser and needs
+        JavaScript.
+      </main>
+    </noscript>
+    <!-- The shell markup is mounted by src/shell.ts -->
+    <script type="module" src="./index.ts"></script>
+  </body>
+</html>
