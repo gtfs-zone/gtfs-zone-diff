@@ -253,3 +253,72 @@ export interface DiffResult {
   /** Milliseconds per stage. */
   timings: Record<string, number>;
 }
+
+/** Pages that show one entity (or the feed_info row) across both feeds. */
+export type PageEntity =
+  'feed_info' | 'agency' | 'route' | 'trip' | 'stop' | 'service' | 'shape';
+
+export type EntityStatus = RowChangeKind | 'unchanged';
+
+/** One column of a row pair. A value is null where that side has no cell. */
+export interface FieldDiff {
+  name: string;
+  a: string | null;
+  b: string | null;
+  cell: 'equal' | 'renamed' | 'formatting' | 'changed';
+  /** The entity the values name, for linking. */
+  ref?: EntityKind;
+}
+
+/** One row of a file, on each side, compared cell by cell. */
+export interface RecordDiff {
+  file: string;
+  status: EntityStatus;
+  fields: FieldDiff[];
+}
+
+/** A link to another entity page, with its status. */
+export interface EntityRef {
+  type: PageEntity;
+  /** The B id, or the A id when it is not in B. */
+  id: string;
+  label: string;
+  status: EntityStatus;
+  /** The A id, when it was renamed. */
+  was?: string;
+}
+
+export type RelatedKey = 'routes' | 'trips' | 'childStops' | 'stopRoutes';
+
+/** Labels and parents of the entities on a page's breadcrumb chain. */
+export interface CrumbLabels {
+  agency: Record<string, { label: string }>;
+  route: Record<string, { label: string; agency_id: string | null }>;
+  trip: Record<string, { label: string; route_id: string }>;
+  stop: Record<
+    string,
+    { label: string; location_type?: number; parent_station?: string }
+  >;
+}
+
+export interface EntityView {
+  type: PageEntity;
+  /** The id asked for, and the id on each side (through renames). */
+  id: string;
+  a: string | null;
+  b: string | null;
+  status: EntityStatus;
+  label: string;
+  /** The entity's own rows (calendar.txt for a service). */
+  records: RecordDiff[];
+  related: { key: RelatedKey; items: EntityRef[] }[];
+  /** A trip's stop_times, one record per stop_sequence. */
+  stopTimes?: RecordDiff[];
+  /** A service's active dates. */
+  dates?: { a: number; b: number; added: string[]; removed: string[] };
+  /** A shape's points, and the largest distance between its two lines. */
+  shape?: { pointsA: number; pointsB: number; metres: number | null };
+  /** Trips using a service or shape, per side. */
+  tripCount?: { a: number; b: number };
+  crumbs: CrumbLabels;
+}

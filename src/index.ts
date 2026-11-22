@@ -33,6 +33,7 @@ import {
   DiffSession,
 } from './modules/diff-client';
 import type { CompareState } from './modules/compare-status';
+import { EntityCache } from './modules/entity-cache';
 import type { PageContext } from './modules/page-context';
 import { createPanel, crumbsFor } from './modules/panel-view';
 import { pickSource } from './modules/source-picker';
@@ -77,12 +78,14 @@ let session: DiffSession | null = null;
 /** The sources the running or finished comparison was started with. */
 let compared: Sources = { a: null, b: null };
 let compareState: CompareState = { status: 'idle' };
+const entities = new EntityCache(() => refresh());
 
 function context(): PageContext {
   return {
     sources,
     compare: compareState,
     session,
+    entities,
     href: (state: PageLocation) => `#${pages.buildHash(state)}`,
   };
 }

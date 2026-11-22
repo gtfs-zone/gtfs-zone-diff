@@ -42,6 +42,8 @@ const api = {
     requireComparison().groupItems(...args),
   rowChanges: (...args: Parameters<Comparison['rowChanges']>) =>
     requireComparison().rowChanges(...args),
+  entity: (...args: Parameters<Comparison['entity']>) =>
+    requireComparison().entity(...args),
 };
 
 export type DiffApi = typeof api;

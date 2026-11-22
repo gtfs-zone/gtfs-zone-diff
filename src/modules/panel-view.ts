@@ -11,30 +11,20 @@ import {
 import type { BreadcrumbItem } from 'gtfs-zone-web-common/ui/breadcrumb-trail';
 import { t } from '../i18n/messages';
 import type { PageLocation, PageState } from '../types/page-state';
+import { entityPageFor, locationId } from './entity-page';
 import { filePage } from './file-page';
 import { groupPage } from './group-page';
 import { comparisonLabel, homePage } from './home-page';
 import { doneResult, type PageContext } from './page-context';
 import { fileTitle, groupLabel } from './result-text';
 
-/** Labels are the bare ids until entity reads land. */
+/** Bare ids, while no comparison is done. */
 const NO_LABELS: TreeCrumbSource = {
   agency: () => null,
   route: () => null,
   trip: () => null,
   stop: () => null,
 };
-
-/** Entity pages until their content lands: the id, across both feeds. */
-function entityPage(eyebrow: string, id: string): TreePage {
-  return {
-    eyebrow,
-    title: id,
-    sections: [
-      { body: `<p class="text-sm opacity-70">${t('focus.pending')}</p>` },
-    ],
-  };
-}
 
 function page(ctx: PageContext, loc: PageLocation): TreePage {
   switch (loc.type) {
@@ -44,20 +34,8 @@ function page(ctx: PageContext, loc: PageLocation): TreePage {
       return filePage(ctx, loc.file);
     case 'group':
       return groupPage(ctx, loc.group);
-    case 'feed_info':
-      return entityPage(t('crumb.feedInfo'), t('crumb.feedInfo'));
-    case 'agency':
-      return entityPage(t('crumb.agency'), loc.agency_id);
-    case 'route':
-      return entityPage(t('crumb.route'), loc.route_id);
-    case 'trip':
-      return entityPage(t('crumb.trip'), loc.trip_id);
-    case 'stop':
-      return entityPage(t('crumb.stop'), loc.stop_id);
-    case 'service':
-      return entityPage(t('crumb.service'), loc.service_id);
-    case 'shape':
-      return entityPage(t('crumb.shape'), loc.shape_id);
+    default:
+      return entityPageFor(ctx, loc);
   }
 }
 
@@ -93,7 +71,12 @@ export function crumbsFor(
     case 'shape':
       return own(t('crumb.shape'), loc.shape_id);
     default:
-      return [root, ...treeCrumbs(NO_LABELS, loc)];
+      // Starts the page's read, whose labels fill the chain once it lands.
+      if (!doneResult(ctx)) {
+        return [root, ...treeCrumbs(NO_LABELS, loc)];
+      }
+      ctx.entities.get(ctx.session, loc.type, locationId(loc));
+      return [root, ...treeCrumbs(ctx.entities, loc)];
   }
 }
 

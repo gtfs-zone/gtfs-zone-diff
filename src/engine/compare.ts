@@ -9,6 +9,7 @@
  */
 
 import { dateOf, minus } from './calendars';
+import { EntityReader } from './entities';
 import { metres } from './geo';
 import { FeedPair, type LoadedSide, type SideData } from './pair';
 import { findRenames, type Renames } from './renames';
@@ -21,11 +22,13 @@ import {
   type CompareProgress,
   type Completeness,
   type DiffResult,
+  type EntityView,
   type FeedIssue,
   type FileDiff,
   type Group,
   type GroupItem,
   type HeaderDiff,
+  type PageEntity,
   type RowChange,
   type RowChangeKind,
   type SideSummary,
@@ -40,6 +43,8 @@ export class Comparison {
   private stopTimes: StopTimesResult | null = null;
   private shapes: ShapesResult | null = null;
   private items = new Map<string, GroupItem[]>();
+  private renames: Renames;
+  private reader: EntityReader | null = null;
 
   constructor(
     private pair: FeedPair,
@@ -59,6 +64,7 @@ export class Comparison {
 
     progress({ stage: 'renames' });
     const renames = time('renames', () => findRenames(pair));
+    this.renames = renames;
 
     const files: FileDiff[] = [];
     time('rows', () => {
@@ -440,6 +446,18 @@ export class Comparison {
       });
     }
     return out.sort((x, y) => y.metres - x.metres);
+  }
+
+  /** One entity on both sides, for its page. */
+  entity(type: PageEntity, id: string): EntityView {
+    this.reader ??= new EntityReader(
+      this.pair,
+      this.renames,
+      this.stopTimes,
+      this.shapes,
+      this.shapes?.changedShapes ?? []
+    );
+    return this.reader.read(type, id);
   }
 
   /** One page of a group's items. */

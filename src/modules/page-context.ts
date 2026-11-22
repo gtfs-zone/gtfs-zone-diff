@@ -6,6 +6,7 @@ import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
 import { renderCompareStatus, type CompareState } from './compare-status';
 import type { DiffSession } from './diff-client';
+import type { EntityCache } from './entity-cache';
 import type { Sources } from './sources';
 
 export interface PageContext {
@@ -13,6 +14,8 @@ export interface PageContext {
   compare: CompareState;
   /** The worker holding both feeds, while one runs or is done. */
   session: DiffSession | null;
+  /** Entity reads for the pages, and the crumb labels they carry. */
+  entities: EntityCache;
   href: (state: PageLocation) => string;
 }
 
