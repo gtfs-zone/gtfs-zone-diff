@@ -2,8 +2,9 @@ import { PageStateManager } from 'gtfs-zone-web-common/ui/page-state-manager';
 import { createPageStateCodec } from 'gtfs-zone-web-common/ui/page-state-schema';
 import type { ModalState, PageLocation, PageState } from '../types/page-state';
 
-/** No type param: the page is read from which key is present, in this order. */
+/** The hash names the page with an explicit `type` param; an unknown type falls back to home. */
 const codec = createPageStateCodec<PageLocation, ModalState>({
+  typeParam: 'type',
   pages: {
     file: { file: 'file' },
     agency: { agency_id: 'agency' },
