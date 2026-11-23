@@ -223,6 +223,12 @@ export const de: Translation<typeof en> = {
   'file.count.unchanged': 'Unverändert',
   'file.changedColumns': 'Geänderte Spalten',
   'file.noChangedColumns': 'Keine Zelle unterscheidet sich.',
+  'file.rows': 'Abweichende Zeilen',
+  'file.rows.trips': 'Abweichende Fahrten',
+  'file.rows.shapes': 'Abweichende Linienverläufe',
+  'file.rows.all': 'Alle',
+  'file.rows.empty': 'Keine Zeile unterscheidet sich.',
+  'file.rows.noKey': 'Zeile ohne Schlüssel',
   'results.group.rename': 'Umbenannte {entity}',
   'results.group.renameSuggestion':
     'Mögliche Umbenennungen: {entity} (mehrdeutig)',

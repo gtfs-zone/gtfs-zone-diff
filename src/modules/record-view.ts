@@ -165,6 +165,37 @@ export function recordTable(ctx: PageContext, rec: RecordDiff): string {
   return `<div class="flex flex-col gap-2">${table}${folded}</div>`;
 }
 
+/** A pair's differing fields as a field / A / B table; equal ones left out. */
+export function changedFieldsTable(
+  ctx: PageContext,
+  fields: FieldDiff[]
+): string {
+  const differ = fields.filter((f) => f.cell !== 'equal');
+  if (differ.length === 0) {
+    return '';
+  }
+  return `<table class="table table-xs"><tbody>${differ
+    .map((f) => fieldRow(ctx, f))
+    .join('')}</tbody></table>`;
+}
+
+/** One side's non-empty values as a wrapped line of name and value pairs. */
+export function rowValuesLine(
+  ctx: PageContext,
+  fields: FieldDiff[],
+  side: 'a' | 'b'
+): string {
+  return `<p class="break-all leading-relaxed">${fields
+    .filter((f) => f[side])
+    .map(
+      (f) =>
+        `<span class="mr-2"><span class="font-mono opacity-60">${escapeHtml(
+          f.name
+        )}</span> ${value(ctx, f[side], f.ref)}</span>`
+    )
+    .join('')}</p>`;
+}
+
 // ---------- stop_times ----------
 
 const ST_MAIN = new Set([

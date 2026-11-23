@@ -22,6 +22,7 @@ import {
   type CompareProgress,
   type Completeness,
   type DiffResult,
+  type EntityKind,
   type EntityView,
   type FeedIssue,
   type FileDiff,
@@ -36,6 +37,27 @@ import {
 
 const SPECIAL = new Set(['stop_times', 'shapes']);
 
+/** The entity a table's rows belong to, for linking a row to its page. */
+const OWNER: Partial<Record<string, EntityKind>> = {
+  agency: 'agency_id',
+  routes: 'route_id',
+  trips: 'trip_id',
+  stops: 'stop_id',
+  calendar: 'service_id',
+  calendar_dates: 'service_id',
+  frequencies: 'trip_id',
+};
+
+function countKinds(
+  kinds: Iterable<RowChangeKind>
+): Partial<Record<RowChangeKind, number>> {
+  const out: Partial<Record<RowChangeKind, number>> = {};
+  for (const k of kinds) {
+    out[k] = (out[k] ?? 0) + 1;
+  }
+  return out;
+}
+
 /** Everything a finished comparison keeps for paged reads. */
 export class Comparison {
   readonly result: DiffResult;
@@ -45,6 +67,9 @@ export class Comparison {
   private items = new Map<string, GroupItem[]>();
   private renames: Renames;
   private reader: EntityReader | null = null;
+  /** `file:kind` -> positions of that kind's records, for paging. */
+  private kindIndex = new Map<string, Int32Array>();
+  private recordKinds = new Map<string, RowChangeKind[]>();
 
   constructor(
     private pair: FeedPair,
@@ -170,6 +195,7 @@ export class Comparison {
       changedCells: {},
       formattingCells: {},
       padded: { a: padded(this.pair.a, table), b: padded(this.pair.b, table) },
+      records: {},
     };
     if (!isTable || table === null) {
       if (inA && inB) {
@@ -213,6 +239,7 @@ export class Comparison {
           grouped: st.grouped,
           changedCells: st.changedCells,
           formattingCells: st.formattingCells,
+          records: countKinds(st.trips.map((c) => c.kind)),
         });
       }
     } else if (table === 'shapes') {
@@ -226,6 +253,7 @@ export class Comparison {
           grouped: sh.grouped,
           changedCells: sh.changedCells,
           formattingCells: sh.formattingCells,
+          records: countKinds(sh.shapes.map((c) => c.kind)),
         });
       }
     } else {
@@ -239,6 +267,7 @@ export class Comparison {
         grouped: t.grouped,
         changedCells: t.changedCells,
         formattingCells: t.formattingCells,
+        records: countKinds(t.log.kinds),
       });
     }
     if (inA && inB) {
@@ -450,14 +479,7 @@ export class Comparison {
 
   /** One entity on both sides, for its page. */
   entity(type: PageEntity, id: string): EntityView {
-    this.reader ??= new EntityReader(
-      this.pair,
-      this.renames,
-      this.stopTimes,
-      this.shapes,
-      this.shapes?.changedShapes ?? []
-    );
-    return this.reader.read(type, id);
+    return this.entities().read(type, id);
   }
 
   /** One page of a group's items. */
@@ -465,9 +487,75 @@ export class Comparison {
     return (this.items.get(id) ?? []).slice(offset, offset + limit);
   }
 
+  /** The kinds of a list of per-trip or per-shape records, cached per file. */
+  private kindsOf(
+    file: string,
+    list: readonly { kind: RowChangeKind }[]
+  ): RowChangeKind[] {
+    let out = this.recordKinds.get(file);
+    if (!out) {
+      out = list.map((c) => c.kind);
+      this.recordKinds.set(file, out);
+    }
+    return out;
+  }
+
+  /** Positions in `kinds` of one kind, cached per file. */
+  private positions(
+    file: string,
+    kinds: readonly RowChangeKind[],
+    kind: RowChangeKind
+  ): Int32Array {
+    const key = `${file}:${kind}`;
+    let out = this.kindIndex.get(key);
+    if (!out) {
+      const list: number[] = [];
+      for (let i = 0; i < kinds.length; i++) {
+        if (kinds[i] === kind) {
+          list.push(i);
+        }
+      }
+      out = Int32Array.from(list);
+      this.kindIndex.set(key, out);
+    }
+    return out;
+  }
+
+  /** Positions `[offset, offset + limit)` of the records of one kind, or all. */
+  private page(
+    file: string,
+    kinds: readonly RowChangeKind[],
+    offset: number,
+    limit: number,
+    kind?: RowChangeKind
+  ): number[] {
+    if (!kind) {
+      const end = Math.min(kinds.length, offset + limit);
+      return Array.from(
+        { length: Math.max(0, end - offset) },
+        (_, i) => offset + i
+      );
+    }
+    return [
+      ...this.positions(file, kinds, kind).subarray(offset, offset + limit),
+    ];
+  }
+
+  private entities(): EntityReader {
+    this.reader ??= new EntityReader(
+      this.pair,
+      this.renames,
+      this.stopTimes,
+      this.shapes,
+      this.shapes?.changedShapes ?? []
+    );
+    return this.reader;
+  }
+
   /**
-   * One page of a file's differing rows, optionally of one kind. stop_times
-   * and shapes give one record per trip or shape, with its row counts.
+   * One page of a file's differing records, optionally of one kind, in the
+   * order the comparison found them. stop_times and shapes give one record
+   * per trip or shape, with its row counts.
    */
   rowChanges(
     file: string,
@@ -477,55 +565,60 @@ export class Comparison {
   ): RowChange[] {
     const { a, b } = this.pair;
     if (file === 'stop_times.txt' && this.stopTimes) {
+      const trips = this.stopTimes.trips;
+      const kinds = this.kindsOf(file, trips);
       const pa = a.patterns;
       const pb = b.patterns;
-      return this.stopTimes.trips
-        .filter((c) => !kind || c.kind === kind)
-        .slice(offset, offset + limit)
-        .map((c) => ({
+      return this.page(file, kinds, offset, limit, kind).map((i) => {
+        const c = trips[i];
+        const id = c.b >= 0 ? pb!.tripId(c.b) : pa!.tripId(c.a);
+        return {
           kind: c.kind,
-          a: null,
-          b: null,
-          columns: [],
-          entity: c.b >= 0 ? pb!.tripId(c.b) : pa!.tripId(c.a),
+          key: id,
+          owner: { kind: 'trip_id', id },
+          fields: [],
           rows: c.rows,
-        }));
+        };
+      });
     }
     if (file === 'shapes.txt' && this.shapes) {
-      return this.shapes.shapes
-        .filter((c) => !kind || c.kind === kind)
-        .slice(offset, offset + limit)
-        .map((c) => ({
+      const shapes = this.shapes.shapes;
+      const kinds = this.kindsOf(file, shapes);
+      return this.page(file, kinds, offset, limit, kind).map((i) => {
+        const c = shapes[i];
+        const id = c.b ?? c.a ?? '';
+        return {
           kind: c.kind,
-          a: null,
-          b: null,
-          columns: [],
-          entity: c.b ?? c.a ?? '',
+          key: id,
+          owner: { kind: 'shape_id', id },
+          fields: [],
           rows: c.rows,
-        }));
+        };
+      });
     }
     const t = this.tables.get(file);
     if (!t) {
       return [];
     }
     const table = file.slice(0, -4);
-    const out: RowChange[] = [];
-    let skip = offset;
-    for (let i = 0; i < t.log.size && out.length < limit; i++) {
-      if (kind && t.log.kinds[i] !== kind) {
-        continue;
-      }
-      if (skip > 0) {
-        skip--;
-        continue;
-      }
+    const ownerKind = OWNER[table];
+    const reader = this.entities();
+    return this.page(file, t.log.kinds, offset, limit, kind).map((i) => {
       const ra = t.log.a[i] >= 0 ? a.store.row(table, t.log.a[i]) : null;
       const rb = t.log.b[i] >= 0 ? b.store.row(table, t.log.b[i]) : null;
-      const columns =
-        ra && rb ? t.cols.filter((c) => (ra[c] ?? '') !== (rb[c] ?? '')) : [];
-      out.push({ kind: t.log.kinds[i], a: ra, b: rb, columns });
-    }
-    return out;
+      const k = t.log.kinds[i];
+      const row = rb ?? ra ?? {};
+      const out: RowChange = {
+        kind: k,
+        key: t.keyFields.map((f) => row[f] ?? '').join(' / '),
+        fields: reader.pairRecord(table, ra, rb, k === 'renamed').fields,
+      };
+      const id = ownerKind ? row[ownerKind] : undefined;
+      if (ownerKind && id) {
+        out.owner = { kind: ownerKind, id };
+      }
+      return out;
+    });
   }
 }
 

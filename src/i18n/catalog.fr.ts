@@ -225,6 +225,12 @@ export const fr: Translation<typeof en> = {
   'file.count.unchanged': 'Inchangées',
   'file.changedColumns': 'Colonnes modifiées',
   'file.noChangedColumns': 'Aucune cellule ne diffère.',
+  'file.rows': 'Lignes différentes',
+  'file.rows.trips': 'Courses différentes',
+  'file.rows.shapes': 'Tracés différents',
+  'file.rows.all': 'Toutes',
+  'file.rows.empty': 'Aucune ligne ne diffère.',
+  'file.rows.noKey': 'Ligne sans clé',
   'results.group.rename': '{entity} renommés',
   'results.group.renameSuggestion':
     'Renommages possibles de {entity} (ambigus)',

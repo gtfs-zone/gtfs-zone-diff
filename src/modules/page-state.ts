@@ -6,7 +6,7 @@ import type { ModalState, PageLocation, PageState } from '../types/page-state';
 const codec = createPageStateCodec<PageLocation, ModalState>({
   typeParam: 'type',
   pages: {
-    file: { file: 'file' },
+    file: { file: 'file', kind: { param: 'kind', optional: true } },
     group: { group: 'group' },
     feed_info: {},
     agency: { agency_id: 'agency' },

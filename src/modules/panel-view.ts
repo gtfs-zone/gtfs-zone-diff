@@ -31,7 +31,7 @@ function page(ctx: PageContext, loc: PageLocation): TreePage {
     case 'home':
       return homePage(ctx);
     case 'file':
-      return filePage(ctx, loc.file);
+      return filePage(ctx, loc.file, loc.kind);
     case 'group':
       return groupPage(ctx, loc.group);
     default:

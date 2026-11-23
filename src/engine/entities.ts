@@ -209,7 +209,7 @@ export class EntityReader {
   }
 
   /** One row pair, cell by cell. `keyDiffers`: paired through a rename of its key. */
-  private record(
+  pairRecord(
     table: string,
     ra: Row | null,
     rb: Row | null,
@@ -253,7 +253,7 @@ export class EntityReader {
     const { table, kind } = TABLES[type];
     const ra = this.row(this.pair.a, table, kind, ids.a);
     const rb = this.row(this.pair.b, table, kind, ids.b);
-    return this.record(table, ra, rb, ids.a !== ids.b).status;
+    return this.pairRecord(table, ra, rb, ids.a !== ids.b).status;
   }
 
   // ---------- trips and shapes ----------
@@ -414,7 +414,7 @@ export class EntityReader {
       s.store.hasTable('feed_info')
         ? (s.store.rows('feed_info', 0, 1)[0]?.row ?? null)
         : null;
-    const rec = this.record(
+    const rec = this.pairRecord(
       'feed_info',
       first(this.pair.a),
       first(this.pair.b),
@@ -434,7 +434,7 @@ export class EntityReader {
   private agency(id: string): EntityView {
     const ids = this.resolveRow('agency', id);
     const { a, b } = this.pair;
-    const rec = this.record(
+    const rec = this.pairRecord(
       'agency',
       this.row(a, 'agency', 'agency_id', ids.a),
       this.row(b, 'agency', 'agency_id', ids.b),
@@ -496,7 +496,7 @@ export class EntityReader {
   private route(id: string): EntityView {
     const ids = this.resolveRow('route', id);
     const { a, b } = this.pair;
-    const rec = this.record(
+    const rec = this.pairRecord(
       'routes',
       this.row(a, 'routes', 'route_id', ids.a),
       this.row(b, 'routes', 'route_id', ids.b),
@@ -539,7 +539,7 @@ export class EntityReader {
     const { a, b } = this.pair;
     const ra = this.row(a, 'trips', 'trip_id', ids.a);
     const rb = this.row(b, 'trips', 'trip_id', ids.b);
-    const rec = this.record('trips', ra, rb, ids.a !== ids.b);
+    const rec = this.pairRecord('trips', ra, rb, ids.a !== ids.b);
     const crumbs = emptyCrumbs();
     const r = rb ?? ra;
     if (r) {
@@ -582,13 +582,15 @@ export class EntityReader {
     put(rows(this.pair.b, ids.b), 'b');
     return [...bySeq.entries()]
       .sort(([x], [y]) => x - y)
-      .map(([, p]) => this.record('stop_times', p.a, p.b, false, ['trip_id']));
+      .map(([, p]) =>
+        this.pairRecord('stop_times', p.a, p.b, false, ['trip_id'])
+      );
   }
 
   private stop(id: string): EntityView {
     const ids = this.resolveRow('stop', id);
     const { a, b } = this.pair;
-    const rec = this.record(
+    const rec = this.pairRecord(
       'stops',
       this.row(a, 'stops', 'stop_id', ids.a),
       this.row(b, 'stops', 'stop_id', ids.b),
@@ -668,7 +670,7 @@ export class EntityReader {
   private service(id: string): EntityView {
     const ids = this.resolve('service_id', id, (s) => s.dates.has(id));
     const { a, b } = this.pair;
-    const rec = this.record(
+    const rec = this.pairRecord(
       'calendar',
       this.row(a, 'calendar', 'service_id', ids.a),
       this.row(b, 'calendar', 'service_id', ids.b),

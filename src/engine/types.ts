@@ -115,6 +115,11 @@ export interface FileDiff {
   formattingCells: Record<string, number>;
   /** Values trimmed at load, per column, on each side. */
   padded: { a: number; b: number };
+  /**
+   * Records `rowChanges` pages per kind: rows, or trips and shapes for
+   * stop_times and shapes.
+   */
+  records: Partial<Record<RowChangeKind, number>>;
 }
 
 export type GroupKind =
@@ -208,12 +213,12 @@ export type RowChangeKind =
 /** One differing row (or trip / shape for stop_times and shapes). */
 export interface RowChange {
   kind: RowChangeKind;
-  a: Record<string, string> | null;
-  b: Record<string, string> | null;
-  /** Columns whose cells differ (any reason). */
-  columns: string[];
-  /** For stop_times and shapes: the trip or shape this record stands for. */
-  entity?: string;
+  /** The row's key values (B's, or A's when removed), joined; empty when keyless. */
+  key: string;
+  /** The entity the row belongs to, for its page. */
+  owner?: { kind: EntityKind; id: string };
+  /** Every column of either side, cell by cell. Empty for stop_times and shapes. */
+  fields: FieldDiff[];
   /** For stop_times and shapes: rows of that trip or shape per kind. */
   rows?: Partial<Record<RowChangeKind, number>>;
 }
