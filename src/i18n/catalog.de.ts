@@ -29,6 +29,12 @@ export const de: Translation<typeof en> = {
   'home.yourFeedsNote':
     'Ihre Feeds zeigt die Feeds, die diff.gtfs.zone in diesem Browser gespeichert hat. Feeds aus dem Editor oder dem Viewer werden getrennt gespeichert: Exportieren oder verlinken Sie sie, um sie hier zu vergleichen.',
 
+  'links.openEditor': 'Im Editor öffnen',
+  'links.openViewer': 'Im Viewer öffnen',
+  'links.title': 'Anderswo öffnen',
+  'links.note':
+    'Öffnet jeden Feed für sich in einer anderen gtfs.zone-App, bei diesem Objekt, wenn die App eine Seite dafür hat.',
+
   'source.notInCatalog': 'Der Feed-Katalog hat keinen Fahrplan zu dieser ID.',
   'source.catalogFailed':
     'Der Feed-Katalog konnte nicht geladen werden: {reason}',

@@ -26,6 +26,12 @@ export const en = {
   'home.yourFeedsNote':
     'Your feeds lists feeds stored by diff.gtfs.zone in this browser. Feeds from the editor or the viewer are stored separately: export or link them to compare them here.',
 
+  'links.openEditor': 'Open in editor',
+  'links.openViewer': 'Open in visualizer',
+  'links.title': 'Open elsewhere',
+  'links.note':
+    'Opens each feed on its own in another gtfs.zone app, on this entity where that app has a page for it.',
+
   'source.notInCatalog': 'The feed catalog has no schedule for this id.',
   'source.catalogFailed': 'The feed catalog could not be loaded: {reason}',
 

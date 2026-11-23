@@ -29,6 +29,12 @@ export const fr: Translation<typeof en> = {
   'home.yourFeedsNote':
     "Vos flux liste les flux enregistrés par diff.gtfs.zone dans ce navigateur. Ceux de l'éditeur ou du visualiseur sont enregistrés à part : exportez-les ou partagez leur lien pour les comparer ici.",
 
+  'links.openEditor': "Ouvrir dans l'éditeur",
+  'links.openViewer': 'Ouvrir dans le visualiseur',
+  'links.title': 'Ouvrir ailleurs',
+  'links.note':
+    "Ouvre chaque flux seul dans une autre application gtfs.zone, sur cet objet quand l'application a une page pour lui.",
+
   'source.notInCatalog':
     "Le catalogue de flux n'a pas d'horaires pour cet identifiant.",
   'source.catalogFailed':

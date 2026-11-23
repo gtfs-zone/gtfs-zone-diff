@@ -10,6 +10,7 @@ import { escapeHtml } from 'gtfs-zone-web-common/util/escape-html';
 import type { DiffResult, FileDiff, Group } from '../engine/types';
 import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
+import { appLinkButtons } from './app-links';
 import { renderCompareStatus } from './compare-status';
 import type { PageContext } from './page-context';
 import {
@@ -45,7 +46,8 @@ function sourceCard(side: Side, src: Source | null): string {
         : `<span class="break-all">${escapeHtml(src.url)}</span>`;
     body = `
       <p class="text-sm font-semibold break-words">${escapeHtml(src.label)}</p>
-      <p class="text-xs opacity-70">${detail}</p>`;
+      <p class="text-xs opacity-70">${detail}</p>
+      ${appLinkButtons(src)}`;
   }
   const clear = src
     ? `<button class="btn btn-ghost btn-xs" data-action="clear" data-arg="${side}">${t('home.clear')}</button>`

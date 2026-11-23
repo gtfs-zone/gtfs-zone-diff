@@ -18,7 +18,9 @@ import type {
 } from '../engine/types';
 import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
+import { appLinkButtons, type LinkFocus } from './app-links';
 import { doneResult, waitingPage, type PageContext } from './page-context';
+import { SIDES } from './sources';
 import { entityStatusBadge, recordTable, stopTimesTable } from './record-view';
 import { fileTitle, fmt } from './result-text';
 
@@ -214,7 +216,38 @@ function sections(ctx: PageContext, v: EntityView): TreeSection[] {
   for (const r of v.related) {
     out.push(relatedSection(ctx, r.key, r.items));
   }
+  const links = linksSection(ctx, v);
+  if (links) {
+    out.push(links);
+  }
   return out;
+}
+
+/** Each side's links into the editor and the visualizer, on its own id. */
+function linksSection(ctx: PageContext, v: EntityView): TreeSection | null {
+  const rows = SIDES.flatMap((side) => {
+    const id = v.type === 'feed_info' ? '' : v[side];
+    if (id === null) {
+      return [];
+    }
+    const focus: LinkFocus = { type: v.type, id };
+    const route = v.crumbs.trip[id]?.route_id;
+    if (route) {
+      focus.route_id = route;
+    }
+    const buttons = appLinkButtons(ctx.sources[side], focus);
+    return buttons
+      ? [
+          `<div class="flex items-center gap-2"><span class="badge badge-neutral font-mono">${side.toUpperCase()}</span>${buttons}</div>`,
+        ]
+      : [];
+  });
+  return rows.length === 0
+    ? null
+    : {
+        title: t('links.title'),
+        body: `<div class="flex flex-col gap-2"><p class="text-xs opacity-60">${escapeHtml(t('links.note'))}</p>${rows.join('')}</div>`,
+      };
 }
 
 export function entityPageFor(ctx: PageContext, loc: EntityLocation): TreePage {
