@@ -44,6 +44,8 @@ const api = {
     requireComparison().rowChanges(...args),
   entity: (...args: Parameters<Comparison['entity']>) =>
     requireComparison().entity(...args),
+  mapGeometry: (...args: Parameters<Comparison['mapGeometry']>) =>
+    requireComparison().mapGeometry(...args),
 };
 
 export type DiffApi = typeof api;

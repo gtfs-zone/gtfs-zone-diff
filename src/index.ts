@@ -35,6 +35,7 @@ import {
 import type { CompareState } from './modules/compare-status';
 import { EntityCache } from './modules/entity-cache';
 import type { PageContext } from './modules/page-context';
+import { MapView } from './modules/map-view';
 import { createPanel, crumbsFor } from './modules/panel-view';
 import { pickSource } from './modules/source-picker';
 import {
@@ -56,7 +57,19 @@ restorePanelWidth(appContainer);
 notify.initialize();
 new ThemeController().initialize();
 
-const mapCtrl = new MapController();
+const mapCtrl = new MapController((props) => {
+  switch (props.page) {
+    case 'stop':
+      navigate({ type: 'stop', stop_id: props.id });
+      break;
+    case 'shape':
+      navigate({ type: 'shape', shape_id: props.id });
+      break;
+    case 'trip':
+      navigate({ type: 'trip', trip_id: props.id });
+      break;
+  }
+});
 try {
   mapCtrl.initialize('map');
 } catch (e) {
@@ -65,6 +78,7 @@ try {
     `<div class="h-full flex items-center justify-center p-6 text-center text-sm opacity-70">${t('app.noWebgl')}</div>`;
 }
 new PanelResizer(appContainer, mapCtrl);
+const mapView = new MapView(mapCtrl);
 
 setHelpPages(HELP_PAGES, HELP_GROUP_ORDER);
 setHelpRuntimeData({ version: __APP_VERSION__, shortcuts: [] });
@@ -100,6 +114,7 @@ const panel = createPanel(document.getElementById('panel-content')!, {
 function render(): void {
   const state = pages.getPageState();
   panel.show(state, crumbsFor(context(), state));
+  mapView.update(context(), state);
 }
 
 /** Redraw the current page in place: its data changed, not the page. */
@@ -107,6 +122,7 @@ function refresh(): void {
   const state = pages.getPageState();
   panel.setBreadcrumbs(crumbsFor(context(), state));
   panel.queueRender();
+  mapView.update(context(), state);
 }
 
 function setCompareState(next: CompareState): void {

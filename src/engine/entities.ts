@@ -23,7 +23,7 @@ import type {
   RecordDiff,
 } from './types';
 
-type Ids = { a: string | null; b: string | null };
+export type Ids = { a: string | null; b: string | null };
 
 /** Where each entity's rows live and what names them. */
 const TABLES: Record<
@@ -101,12 +101,7 @@ export class EntityReader {
 
   // ---------- lookups ----------
 
-  private row(
-    s: SideData,
-    table: string,
-    col: string,
-    id: string | null
-  ): Row | null {
+  row(s: SideData, table: string, col: string, id: string | null): Row | null {
     if (id === null || !s.store.hasTable(table)) {
       return null;
     }
@@ -142,13 +137,13 @@ export class EntityReader {
     return { a: null, b: null };
   }
 
-  private resolveRow(type: keyof typeof TABLES, id: string): Ids {
+  resolveRow(type: keyof typeof TABLES, id: string): Ids {
     const { table, kind } = TABLES[type];
     return this.resolve(kind, id, (s) => this.row(s, table, kind, id) !== null);
   }
 
   /** B ids, then A ids not mapped to one of them. */
-  private union(
+  union(
     kind: EntityKind,
     idsA: Iterable<string>,
     idsB: Iterable<string>
@@ -249,7 +244,7 @@ export class EntityReader {
     };
   }
 
-  private rowStatus(type: keyof typeof TABLES, ids: Ids): EntityStatus {
+  rowStatus(type: keyof typeof TABLES, ids: Ids): EntityStatus {
     const { table, kind } = TABLES[type];
     const ra = this.row(this.pair.a, table, kind, ids.a);
     const rb = this.row(this.pair.b, table, kind, ids.b);
@@ -300,7 +295,7 @@ export class EntityReader {
     return this.shapeSets;
   }
 
-  private shapeStatus(ids: Ids): EntityStatus {
+  shapeStatus(ids: Ids): EntityStatus {
     if (!this.shapes) {
       return 'unchanged';
     }
@@ -702,11 +697,16 @@ export class EntityReader {
     return v;
   }
 
-  private shape(id: string): EntityView {
+  /** A shape's id on each side, matched on either one and through renames. */
+  resolveShape(id: string): Ids {
     const sets = this.shapeIds();
-    const ids = this.resolve('shape_id', id, (s) =>
+    return this.resolve('shape_id', id, (s) =>
       (s === this.pair.a ? sets.a : sets.b).has(id)
     );
+  }
+
+  private shape(id: string): EntityView {
+    const ids = this.resolveShape(id);
     const points = (s: SideData, v: string | null): number =>
       v === null ? 0 : s.store.shapeCoords(v).length / 2;
     const item = this.shapeGroup.find((g) => g.b === ids.b && g.a === ids.a);

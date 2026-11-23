@@ -278,4 +278,12 @@ export const de: Translation<typeof en> = {
   'related.childStops': 'Haltestellen dieser Station',
   'related.stopRoutes': 'Linien an dieser Haltestelle',
   'related.empty': 'Keine.',
+  'map.side': 'Auf der Karte gezeigter Feed',
+  'map.sideA': 'A',
+  'map.sideB': 'B',
+  'map.sideBoth': 'Beide',
+  'map.sideATip': 'Nur Feed A: Entferntes und die alte Lage von Geändertem',
+  'map.sideBTip': 'Nur Feed B: Hinzugefügtes und die neue Lage von Geändertem',
+  'map.sideBothTip':
+    'Beide Feeds, verschobene Haltestellen gestrichelt von A nach B',
 };

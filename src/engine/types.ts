@@ -6,6 +6,8 @@
  * `rowChanges`.
  */
 
+import type { Feature, LineString, Point } from 'geojson';
+
 export type Side = 'a' | 'b';
 
 /** Entities whose ids can be renamed between the two feeds. */
@@ -326,4 +328,28 @@ export interface EntityView {
   /** Trips using a service or shape, per side. */
   tripCount?: { a: number; b: number };
   crumbs: CrumbLabels;
+}
+
+/** What the map shows: the changes overview (one layer of it), or one page. */
+export type MapScope =
+  | { type: 'overview'; layer?: 'stops' | 'shapes' | 'moved' }
+  | { type: 'stop' | 'trip' | 'route' | 'shape'; id: string };
+
+export type MapStatus = 'added' | 'removed' | 'changed' | 'unchanged';
+
+export interface MapFeatureProps {
+  /** A stop, a shape or stop-list line, or a moved stop's A to B line. */
+  kind: 'stop' | 'line' | 'move';
+  status: MapStatus;
+  /** The feed the geometry comes from; `both` when it is the same in each. */
+  side: Side | 'both';
+  /** The page a click opens, and its id. */
+  page: 'stop' | 'shape' | 'trip';
+  id: string;
+}
+
+export interface MapGeometry {
+  features: Feature<Point | LineString, MapFeatureProps>[];
+  /** West, south, east, north, or null when there is nothing to draw. */
+  bounds: [number, number, number, number] | null;
 }

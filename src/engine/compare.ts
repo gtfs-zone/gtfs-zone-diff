@@ -11,6 +11,7 @@
 import { dateOf, minus } from './calendars';
 import { EntityReader } from './entities';
 import { metres } from './geo';
+import { GeometryReader } from './geometry';
 import { FeedPair, type LoadedSide, type SideData } from './pair';
 import { findRenames, type Renames } from './renames';
 import { diffTable, emptyGrouped, emptyRaw, type TableResult } from './rows';
@@ -26,6 +27,8 @@ import {
   type EntityView,
   type FeedIssue,
   type FileDiff,
+  type MapGeometry,
+  type MapScope,
   type Group,
   type GroupItem,
   type HeaderDiff,
@@ -67,6 +70,7 @@ export class Comparison {
   private items = new Map<string, GroupItem[]>();
   private renames: Renames;
   private reader: EntityReader | null = null;
+  private geometry: GeometryReader | null = null;
   /** `file:kind` -> positions of that kind's records, for paging. */
   private kindIndex = new Map<string, Int32Array>();
   private recordKinds = new Map<string, RowChangeKind[]>();
@@ -480,6 +484,18 @@ export class Comparison {
   /** One entity on both sides, for its page. */
   entity(type: PageEntity, id: string): EntityView {
     return this.entities().read(type, id);
+  }
+
+  /** Map geometry for the overview or one page. */
+  mapGeometry(scope: MapScope): MapGeometry {
+    this.geometry ??= new GeometryReader(
+      this.pair,
+      this.renames,
+      this.entities(),
+      this.tables.get('stops.txt') ?? null,
+      this.shapes
+    );
+    return this.geometry.read(scope);
   }
 
   /** One page of a group's items. */

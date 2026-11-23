@@ -278,4 +278,14 @@ export const fr: Translation<typeof en> = {
   'related.childStops': 'Arrêts de cette station',
   'related.stopRoutes': 'Lignes desservant cet arrêt',
   'related.empty': 'Aucun.',
+  'map.side': 'Flux affiché sur la carte',
+  'map.sideA': 'A',
+  'map.sideB': 'B',
+  'map.sideBoth': 'Les deux',
+  'map.sideATip':
+    "Flux A seul : supprimé, et l'ancienne position de ce qui a changé",
+  'map.sideBTip':
+    'Flux B seul : ajouté, et la nouvelle position de ce qui a changé',
+  'map.sideBothTip':
+    'Les deux flux, les arrêts déplacés reliés de A à B en pointillés',
 };

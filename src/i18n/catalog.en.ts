@@ -270,4 +270,12 @@ export const en = {
   'related.childStops': 'Stops in this station',
   'related.stopRoutes': 'Routes serving this stop',
   'related.empty': 'None.',
+  'map.side': 'Feed drawn on the map',
+  'map.sideA': 'A',
+  'map.sideB': 'B',
+  'map.sideBoth': 'Both',
+  'map.sideATip': 'Feed A only: removed, and the old position of what changed',
+  'map.sideBTip': 'Feed B only: added, and the new position of what changed',
+  'map.sideBothTip':
+    'Both feeds, with moved stops as a dashed line from A to B',
 } as const;
