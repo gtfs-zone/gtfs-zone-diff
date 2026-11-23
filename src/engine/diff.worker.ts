@@ -46,6 +46,7 @@ const api = {
     requireComparison().entity(...args),
   mapGeometry: (...args: Parameters<Comparison['mapGeometry']>) =>
     requireComparison().mapGeometry(...args),
+  searchIndex: () => requireComparison().searchIndex(),
 };
 
 export type DiffApi = typeof api;

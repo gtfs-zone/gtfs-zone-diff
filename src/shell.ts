@@ -46,5 +46,5 @@ mountAppShell({
   ],
 });
 
-// Nothing to search until both feeds are loaded.
+// Shown once both feeds are compared.
 document.getElementById('map-search-card')?.classList.add('hidden');

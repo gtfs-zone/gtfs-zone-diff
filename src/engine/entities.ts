@@ -280,7 +280,7 @@ export class EntityReader {
     );
   }
 
-  private tripStatus(ids: Ids): EntityStatus {
+  tripStatus(ids: Ids): EntityStatus {
     const row = this.rowStatus('trip', ids);
     return row === 'added' || row === 'removed'
       ? row

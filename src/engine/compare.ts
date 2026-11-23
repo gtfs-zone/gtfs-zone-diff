@@ -12,6 +12,7 @@ import { dateOf, minus } from './calendars';
 import { EntityReader } from './entities';
 import { metres } from './geo';
 import { GeometryReader } from './geometry';
+import { SearchReader } from './search';
 import { FeedPair, type LoadedSide, type SideData } from './pair';
 import { findRenames, type Renames } from './renames';
 import { diffTable, emptyGrouped, emptyRaw, type TableResult } from './rows';
@@ -35,6 +36,7 @@ import {
   type PageEntity,
   type RowChange,
   type RowChangeKind,
+  type SearchIndex,
   type SideSummary,
 } from './types';
 
@@ -71,6 +73,7 @@ export class Comparison {
   private renames: Renames;
   private reader: EntityReader | null = null;
   private geometry: GeometryReader | null = null;
+  private search: SearchReader | null = null;
   /** `file:kind` -> positions of that kind's records, for paging. */
   private kindIndex = new Map<string, Int32Array>();
   private recordKinds = new Map<string, RowChangeKind[]>();
@@ -484,6 +487,12 @@ export class Comparison {
   /** One entity on both sides, for its page. */
   entity(type: PageEntity, id: string): EntityView {
     return this.entities().read(type, id);
+  }
+
+  /** The search index over both sides. */
+  searchIndex(): SearchIndex {
+    this.search ??= new SearchReader(this.pair, this.entities());
+    return this.search.read();
   }
 
   /** Map geometry for the overview or one page. */

@@ -239,6 +239,9 @@ export const de: Translation<typeof en> = {
   'status.followsRename': 'Folgt einer Umbenennung',
   'status.renamed': 'Umbenannt',
   'status.unchanged': 'Unverändert',
+
+  'search.agencies': 'Verkehrsunternehmen',
+  'search.trips': 'Fahrten',
   'entity.loading': 'Beide Feeds werden gelesen',
   'entity.failed': 'Diese Seite konnte nicht gelesen werden: {message}',
   'entity.notFound': 'Keiner der beiden Feeds hat {id}.',

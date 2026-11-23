@@ -353,3 +353,25 @@ export interface MapGeometry {
   /** West, south, east, north, or null when there is nothing to draw. */
   bounds: [number, number, number, number] | null;
 }
+
+/** One entity in the search index, matched across both sides. */
+export interface SearchItem {
+  /** The B id, or the A id when it is not in B. */
+  id: string;
+  /** The A id, when it was renamed. */
+  was?: string;
+  label: string;
+  status: EntityStatus;
+  /** Names, ids and codes of both sides, joined with spaces. */
+  haystack: string;
+  /** A stop's location_type, or a route's route_color. */
+  marker?: string;
+}
+
+/** Search entries per entity type. `trips` is null above the trip limit. */
+export interface SearchIndex {
+  agencies: SearchItem[];
+  routes: SearchItem[];
+  stops: SearchItem[];
+  trips: SearchItem[] | null;
+}

@@ -233,6 +233,9 @@ export const en = {
   'status.followsRename': 'Follows a rename',
   'status.renamed': 'Renamed',
   'status.unchanged': 'Unchanged',
+
+  'search.agencies': 'Agencies',
+  'search.trips': 'Trips',
   'entity.loading': 'Reading both feeds',
   'entity.failed': 'This page could not be read: {message}',
   'entity.notFound': 'Neither feed has {id}.',

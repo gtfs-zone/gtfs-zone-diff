@@ -21,6 +21,7 @@ import {
   PanelResizer,
   restorePanelWidth,
 } from 'gtfs-zone-web-common/ui/panel-resizer';
+import { SearchController } from 'gtfs-zone-web-common/ui/search-controller';
 import { ThemeController } from 'gtfs-zone-web-common/ui/theme-controller';
 import { t } from './i18n/messages';
 import { MapController } from './map-controller';
@@ -37,6 +38,7 @@ import { EntityCache } from './modules/entity-cache';
 import type { PageContext } from './modules/page-context';
 import { MapView } from './modules/map-view';
 import { createPanel, crumbsFor } from './modules/panel-view';
+import { SearchEntries } from './modules/search-entries';
 import { pickSource } from './modules/source-picker';
 import {
   paramsToSources,
@@ -93,6 +95,14 @@ let session: DiffSession | null = null;
 let compared: Sources = { a: null, b: null };
 let compareState: CompareState = { status: 'idle' };
 const entities = new EntityCache(() => refresh());
+const searchEntries = new SearchEntries();
+const searchController = new SearchController<PageLocation>({
+  getGroups: () =>
+    searchEntries.get(compareState.status === 'done' ? session : null),
+  onSelect: (location) => navigate(location),
+});
+searchController.initialize();
+const searchCard = document.getElementById('map-search-card');
 
 function context(): PageContext {
   return {
@@ -125,9 +135,17 @@ function refresh(): void {
   mapView.update(context(), state);
 }
 
-function setCompareState(next: CompareState): void {
+/** `redraw` false when the caller redraws itself. */
+function setCompareState(next: CompareState, redraw = true): void {
   compareState = next;
-  refresh();
+  // Nothing to search until both feeds are compared.
+  if (next.status !== 'done') {
+    searchController.clearSearch();
+  }
+  searchCard?.classList.toggle('hidden', next.status !== 'done');
+  if (redraw) {
+    refresh();
+  }
 }
 
 /**
@@ -144,7 +162,7 @@ function startCompare(force = false): void {
   const a = compareInput(sources.a);
   const b = compareInput(sources.b);
   if (!a || !b) {
-    compareState = { status: 'idle' };
+    setCompareState({ status: 'idle' }, false);
     return;
   }
   const own = new DiffSession(a, b, {}, (progress) => {
@@ -153,7 +171,7 @@ function startCompare(force = false): void {
     }
   });
   session = own;
-  compareState = { status: 'running', progress: null };
+  setCompareState({ status: 'running', progress: null }, false);
   own.done.then(
     (result) => {
       if (session === own) {

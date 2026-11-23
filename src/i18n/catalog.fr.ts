@@ -241,6 +241,9 @@ export const fr: Translation<typeof en> = {
   'status.followsRename': 'Suit un renommage',
   'status.renamed': 'Renommé',
   'status.unchanged': 'Inchangé',
+
+  'search.agencies': 'Opérateurs',
+  'search.trips': 'Courses',
   'entity.loading': 'Lecture des deux flux',
   'entity.failed': "Cette page n'a pas pu être lue : {message}",
   'entity.notFound': "Aucun des deux flux n'a {id}.",
