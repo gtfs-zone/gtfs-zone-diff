@@ -16,7 +16,12 @@ import {
   type PatternReader,
 } from 'gtfs-zone-web-common/gtfs/store/pattern-reader';
 import { CellComparer } from './compare-cells';
-import type { FeedPair, RenameMaps, SideData } from './pair';
+import {
+  pairBySequence,
+  type FeedPair,
+  type RenameMaps,
+  type SideData,
+} from './pair';
 import { emptyGrouped, emptyRaw } from './rows';
 import type {
   FeedIssue,
@@ -55,7 +60,7 @@ const SAMPLE = 5;
 const TIME_COLS = new Set(['arrival_time', 'departure_time']);
 
 /** Rows of one side's trips as values in a fixed column order. */
-class TripRows {
+export class TripRows {
   private patternCache = new Map<number, string[][]>();
   private at: {
     trip: number;
@@ -319,25 +324,12 @@ export function diffStopTimes(
     };
     const a = rowsA.trip(t);
     const b = rowsB.trip(u);
-    const bySeq = new Map<string, number>();
-    b.forEach((row, k) => {
-      const seq = seqAt >= 0 ? row[seqAt] : String(k);
-      if (bySeq.has(seq)) {
-        dupSeq++;
-      } else {
-        bySeq.set(seq, k);
-      }
-    });
-    const usedB = new Uint8Array(b.length);
-    const seenA = new Set<string>();
-    for (const row of a) {
-      const seq = seqAt >= 0 ? row[seqAt] : '';
-      const k = seenA.has(seq) ? undefined : bySeq.get(seq);
-      if (seenA.has(seq)) {
-        dupSeq++;
-      }
-      seenA.add(seq);
-      if (k === undefined) {
+    const { partner, usedB, repeats } = pairBySequence(a, b, seqAt);
+    dupSeq += repeats;
+    for (let i = 0; i < a.length; i++) {
+      const row = a[i];
+      const k = partner[i];
+      if (k < 0) {
         if (!renamed) {
           raw.removed++;
         }
@@ -345,7 +337,6 @@ export function diffStopTimes(
         add('removed');
         continue;
       }
-      usedB[k] = 1;
       const other = b[k];
       if (!renamed) {
         if (row.every((v, i) => v === other[i])) {

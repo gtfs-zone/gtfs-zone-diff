@@ -12,8 +12,10 @@ import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
 import { appLinkButtons } from './app-links';
 import { renderCompareStatus } from './compare-status';
+import { exportCap } from './export-actions';
 import type { PageContext } from './page-context';
 import {
+  comparisonLabel,
   fileCounts,
   fileTitle,
   groupCount,
@@ -88,15 +90,6 @@ function sourcesBody(sources: Sources): string {
     </div>`;
 }
 
-/** "A vs B", or the generic name until both sides are set. */
-export function comparisonLabel(sources: Sources): string {
-  const name = (src: Source | null): string | null =>
-    !src ? null : src.kind === 'missing' ? src.feedId : src.label;
-  const a = name(sources.a);
-  const b = name(sources.b);
-  return a && b ? t('home.versus', { a, b }) : t('home.newComparison');
-}
-
 function fileRow(ctx: PageContext, f: FileDiff): string {
   const lines = [f.file, fileCounts(f), headerLine(f)].filter(Boolean);
   return entityRow<PageLocation>(ctx, {
@@ -113,6 +106,33 @@ function groupRow(ctx: PageContext, g: Group): string {
     label: groupLabel(g),
     sublabel: groupCount(g),
   });
+}
+
+function exportSection(ctx: PageContext): TreeSection {
+  const cap = exportCap();
+  const busy = ctx.exporting
+    ? ` disabled title="${escapeHtml(t('export.working'))}"`
+    : '';
+  const button = (kind: string, label: string): string =>
+    `<button class="btn btn-sm" data-action="export" data-arg="${kind}"${busy}>${escapeHtml(label)}</button>`;
+  return {
+    title: t('export.title'),
+    body: `
+      <div class="flex flex-col gap-2">
+        <p class="text-xs opacity-70">${t('export.lede')}</p>
+        <label class="flex items-center gap-2 text-sm">
+          <span class="flex-1">${t('export.cap')}</span>
+          <input id="export-cap" type="number" min="0" step="1"
+            class="input input-sm w-24" placeholder="${escapeHtml(t('export.capAll'))}"
+            value="${cap ?? ''}">
+        </label>
+        <p class="text-xs opacity-60">${t('export.capNote')}</p>
+        <div class="flex flex-wrap gap-2">
+          ${button('v2', t('export.v2'))}
+          ${button('summary', t('export.summary'))}
+        </div>
+      </div>`,
+  };
 }
 
 function resultSections(ctx: PageContext, r: DiffResult): TreeSection[] {
@@ -156,6 +176,7 @@ function resultSections(ctx: PageContext, r: DiffResult): TreeSection[] {
       empty: t('results.noGroups'),
     })
   );
+  sections.push(exportSection(ctx));
   if (r.issues.length > 0) {
     sections.push({
       title: t('results.issues'),

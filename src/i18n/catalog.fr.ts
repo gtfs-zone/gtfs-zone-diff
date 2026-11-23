@@ -297,4 +297,24 @@ export const fr: Translation<typeof en> = {
     'Flux B seul : ajouté, et la nouvelle position de ce qui a changé',
   'map.sideBothTip':
     'Les deux flux, les arrêts déplacés reliés de A à B en pointillés',
+
+  'export.title': 'Exporter',
+  'export.lede':
+    'Télécharger la comparaison en JSON GTFS Diff v2 (MobilityData), avec chaque ligne différente, ou en bref résumé Markdown.',
+  'export.cap': 'Lignes modifiées par fichier',
+  'export.capAll': 'Toutes',
+  'export.capNote':
+    'Vide garde toutes les lignes. Les totaux couvrent toujours toutes les lignes ; seules les lignes listées sont coupées.',
+  'export.v2': 'GTFS Diff v2 (JSON)',
+  'export.summary': 'Résumé (Markdown)',
+  'export.working': 'Export en cours',
+  'export.failed': "L'export a échoué : {message}",
+  'summary.window': 'Service du {start} au {end}',
+  'summary.agencies': 'Réseaux : {names}',
+  'summary.file': 'Fichier',
+  'summary.status': 'État',
+  'summary.changes': 'Changements',
+  'summary.identical_one': '{count} autre fichier est identique.',
+  'summary.identical_other': '{count} autres fichiers sont identiques.',
+  'summary.more': 'et {count} de plus',
 };

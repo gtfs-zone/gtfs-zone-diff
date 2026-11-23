@@ -30,7 +30,10 @@ function tripsLine(trips: number): string {
 }
 
 /** One item as a row: what it names, where it goes, what changed. */
-function itemRow(group: Group, item: GroupItem): EntityRow<PageLocation> {
+export function itemRow(
+  group: Group,
+  item: GroupItem
+): EntityRow<PageLocation> {
   switch (item.kind) {
     case 'rename':
       return {

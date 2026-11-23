@@ -287,4 +287,24 @@ export const en = {
   'map.sideBTip': 'Feed B only: added, and the new position of what changed',
   'map.sideBothTip':
     'Both feeds, with moved stops as a dashed line from A to B',
+
+  'export.title': 'Export',
+  'export.lede':
+    'Download the comparison as GTFS Diff v2 JSON (MobilityData), with every differing row, or as a short summary in Markdown.',
+  'export.cap': 'Row changes per file',
+  'export.capAll': 'All',
+  'export.capNote':
+    'Empty keeps every row. Counts always cover every row; only the listed rows are cut.',
+  'export.v2': 'GTFS Diff v2 (JSON)',
+  'export.summary': 'Summary (Markdown)',
+  'export.working': 'Exporting',
+  'export.failed': 'The export failed: {message}',
+  'summary.window': 'Service from {start} to {end}',
+  'summary.agencies': 'Agencies: {names}',
+  'summary.file': 'File',
+  'summary.status': 'Status',
+  'summary.changes': 'Changes',
+  'summary.identical_one': '{count} more file is identical.',
+  'summary.identical_other': '{count} more files are identical.',
+  'summary.more': 'and {count} more',
 } as const;

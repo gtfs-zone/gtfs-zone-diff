@@ -14,7 +14,8 @@ import type { PageLocation, PageState } from '../types/page-state';
 import { entityPageFor, locationId } from './entity-page';
 import { filePage } from './file-page';
 import { groupPage } from './group-page';
-import { comparisonLabel, homePage } from './home-page';
+import { homePage } from './home-page';
+import { comparisonLabel } from './result-text';
 import { doneResult, type PageContext } from './page-context';
 import { fileTitle, groupLabel } from './result-text';
 

@@ -12,6 +12,7 @@ import type {
   GroupKind,
 } from '../engine/types';
 import type { PageLocation } from '../types/page-state';
+import type { Source, Sources } from './sources';
 
 type Key = Parameters<typeof t>[0];
 
@@ -158,6 +159,15 @@ export function groupCount(g: Group): string {
   return g.covers === undefined
     ? items
     : `${items}, ${t('unit.trips', { count: g.covers })}`;
+}
+
+/** "A vs B", or the generic name until both sides are set. */
+export function comparisonLabel(sources: Sources): string {
+  const name = (src: Source | null): string | null =>
+    !src ? null : src.kind === 'missing' ? src.feedId : src.label;
+  const a = name(sources.a);
+  const b = name(sources.b);
+  return a && b ? t('home.versus', { a, b }) : t('home.newComparison');
 }
 
 /** The page an entity id of a kind opens. */

@@ -295,4 +295,24 @@ export const de: Translation<typeof en> = {
   'map.sideBTip': 'Nur Feed B: Hinzugefügtes und die neue Lage von Geändertem',
   'map.sideBothTip':
     'Beide Feeds, verschobene Haltestellen gestrichelt von A nach B',
+
+  'export.title': 'Exportieren',
+  'export.lede':
+    'Den Vergleich als GTFS-Diff-v2-JSON (MobilityData) mit jeder abweichenden Zeile herunterladen, oder als kurze Zusammenfassung in Markdown.',
+  'export.cap': 'Geänderte Zeilen pro Datei',
+  'export.capAll': 'Alle',
+  'export.capNote':
+    'Leer behält jede Zeile. Die Summen zählen immer jede Zeile; nur die aufgelisteten Zeilen werden gekürzt.',
+  'export.v2': 'GTFS Diff v2 (JSON)',
+  'export.summary': 'Zusammenfassung (Markdown)',
+  'export.working': 'Wird exportiert',
+  'export.failed': 'Der Export ist fehlgeschlagen: {message}',
+  'summary.window': 'Betrieb vom {start} bis {end}',
+  'summary.agencies': 'Verkehrsunternehmen: {names}',
+  'summary.file': 'Datei',
+  'summary.status': 'Status',
+  'summary.changes': 'Änderungen',
+  'summary.identical_one': '{count} weitere Datei ist identisch.',
+  'summary.identical_other': '{count} weitere Dateien sind identisch.',
+  'summary.more': 'und {count} weitere',
 };

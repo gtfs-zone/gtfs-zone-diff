@@ -16,6 +16,8 @@ export interface PageContext {
   session: DiffSession | null;
   /** Entity reads for the pages, and the crumb labels they carry. */
   entities: EntityCache;
+  /** An export is being built; its buttons wait. */
+  exporting: boolean;
   href: (state: PageLocation) => string;
 }
 

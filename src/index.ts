@@ -35,6 +35,7 @@ import {
 } from './modules/diff-client';
 import type { CompareState } from './modules/compare-status';
 import { EntityCache } from './modules/entity-cache';
+import { runExport, setExportCap } from './modules/export-actions';
 import type { PageContext } from './modules/page-context';
 import { MapView } from './modules/map-view';
 import { createPanel, crumbsFor } from './modules/panel-view';
@@ -94,6 +95,7 @@ let session: DiffSession | null = null;
 /** The sources the running or finished comparison was started with. */
 let compared: Sources = { a: null, b: null };
 let compareState: CompareState = { status: 'idle' };
+let exporting = false;
 const entities = new EntityCache(() => refresh());
 const searchEntries = new SearchEntries();
 const searchController = new SearchController<PageLocation>({
@@ -110,6 +112,7 @@ function context(): PageContext {
     compare: compareState,
     session,
     entities,
+    exporting,
     href: (state: PageLocation) => `#${pages.buildHash(state)}`,
   };
 }
@@ -271,6 +274,39 @@ function onAction(action: string, arg: string): void {
       startCompare(true);
       refresh();
       break;
+    case 'export':
+      if (arg === 'v2' || arg === 'summary') {
+        void exportAs(arg);
+      }
+      break;
+  }
+}
+
+async function exportAs(kind: 'v2' | 'summary'): Promise<void> {
+  const own = session;
+  if (exporting || !own || compareState.status !== 'done') {
+    return;
+  }
+  const input = document.getElementById('export-cap');
+  if (input instanceof HTMLInputElement) {
+    setExportCap(input.value);
+  }
+  exporting = true;
+  refresh();
+  const note = notify.loading(t('export.working'));
+  try {
+    await runExport(kind, compareState.result, own, compared);
+  } catch (err) {
+    console.error('[export] failed', err);
+    notify.error(
+      t('export.failed', {
+        message: err instanceof Error ? err.message : String(err),
+      })
+    );
+  } finally {
+    notify.removeNotification(note);
+    exporting = false;
+    refresh();
   }
 }
 

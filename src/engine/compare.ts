@@ -10,6 +10,7 @@
 
 import { dateOf, minus } from './calendars';
 import { EntityReader } from './entities';
+import { exportV2, type ExportOptions } from './export-v2';
 import { metres } from './geo';
 import { GeometryReader } from './geometry';
 import { SearchReader } from './search';
@@ -505,6 +506,21 @@ export class Comparison {
       this.shapes
     );
     return this.geometry.read(scope);
+  }
+
+  /** The comparison as GTFS Diff v2 JSON. */
+  exportV2(options: ExportOptions): Blob {
+    return exportV2(
+      {
+        pair: this.pair,
+        result: this.result,
+        tables: this.tables,
+        stopTimes: this.stopTimes,
+        shapes: this.shapes,
+        items: (id) => this.items.get(id) ?? [],
+      },
+      options
+    );
   }
 
   /** One page of a group's items. */

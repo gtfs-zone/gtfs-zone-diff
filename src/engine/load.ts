@@ -108,6 +108,7 @@ export async function loadSide(src: SideSource): Promise<LoadedSide> {
   const stream = await streamGtfsZip(tee, store.sinkFor, {
     innerPaths: src.innerPaths,
     trim: true,
+    lines: true,
     onOtherFile: store.addFile,
     onBytes: src.onBytes,
     onTableBytes: (table) => {
@@ -119,5 +120,5 @@ export async function loadSide(src: SideSource): Promise<LoadedSide> {
   });
   store.finish();
   const zip = await zipIndex(src, tail);
-  return { store, stream, zip };
+  return { store, stream, zip, loadedAt: new Date().toISOString() };
 }

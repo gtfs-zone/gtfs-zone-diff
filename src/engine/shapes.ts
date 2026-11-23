@@ -7,7 +7,7 @@
 
 import { CellComparer } from './compare-cells';
 import { lineDistance } from './geo';
-import type { FeedPair, RenameMaps } from './pair';
+import { pairBySequence, type FeedPair, type RenameMaps } from './pair';
 import { emptyGrouped, emptyRaw } from './rows';
 import type {
   GroupItem,
@@ -104,17 +104,10 @@ export function diffShapes(
     const add = (k: RowChangeKind): void => {
       counts[k] = (counts[k] ?? 0) + 1;
     };
-    const bySeq = new Map<string, number>();
-    rowsB.forEach((r, k) => {
-      const seq = seqAt >= 0 ? r[seqAt] : String(k);
-      if (!bySeq.has(seq)) {
-        bySeq.set(seq, k);
-      }
-    });
-    const usedB = new Uint8Array(rowsB.length);
+    const { partner, usedB } = pairBySequence(rowsA, rowsB, seqAt);
     rowsA.forEach((row, i) => {
-      const k = bySeq.get(seqAt >= 0 ? row[seqAt] : String(i));
-      if (k === undefined || usedB[k]) {
+      const k = partner[i];
+      if (k < 0) {
         if (!renamed) {
           raw.removed++;
         }
@@ -122,7 +115,6 @@ export function diffShapes(
         add('removed');
         return;
       }
-      usedB[k] = 1;
       const other = rowsB[k];
       if (renamed) {
         grouped.rematched++;
