@@ -44,6 +44,9 @@ export interface CompareProgress {
   total?: number | null;
   /** The table being parsed or compared. */
   table?: string;
+  /** Rows only: the table's place among the files compared, from 0. */
+  index?: number;
+  count?: number;
 }
 
 /**

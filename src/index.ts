@@ -33,7 +33,12 @@ import {
   compareInput,
   DiffSession,
 } from './modules/diff-client';
-import type { CompareState } from './modules/compare-status';
+import {
+  PROGRESS_ID,
+  renderProgress,
+  stampStep,
+  type CompareState,
+} from './modules/compare-status';
 import { EntityCache } from './modules/entity-cache';
 import { runExport, setExportCap } from './modules/export-actions';
 import type { PageContext } from './modules/page-context';
@@ -169,12 +174,24 @@ function startCompare(force = false): void {
     return;
   }
   const own = new DiffSession(a, b, {}, (progress) => {
-    if (session === own) {
-      setCompareState({ status: 'running', progress });
+    if (session !== own || compareState.status !== 'running') {
+      return;
+    }
+    const started = stampStep(compareState.started, progress);
+    compareState = { status: 'running', progress, started };
+    // Patch the steps in place when shown; the rest of the page is unchanged.
+    const box = document.getElementById(PROGRESS_ID);
+    if (box) {
+      box.innerHTML = renderProgress(progress, started);
+    } else {
+      refresh();
     }
   });
   session = own;
-  setCompareState({ status: 'running', progress: null }, false);
+  setCompareState(
+    { status: 'running', progress: null, started: stampStep({}, null) },
+    false
+  );
   own.done.then(
     (result) => {
       if (session === own) {
@@ -194,6 +211,17 @@ function startCompare(force = false): void {
       });
     }
   );
+}
+
+/** Stop the running comparison; its sources stay until compared again. */
+function cancelCompare(): void {
+  if (compareState.status !== 'running') {
+    return;
+  }
+  console.log('[compare] cancelled');
+  session?.release();
+  session = null;
+  setCompareState({ status: 'cancelled' });
 }
 
 /** Replace both sources and write them to the hash. */
@@ -269,6 +297,9 @@ function onAction(action: string, arg: string): void {
       break;
     case 'swap':
       setSources({ a: sources.b, b: sources.a });
+      break;
+    case 'cancel':
+      cancelCompare();
       break;
     case 'retry':
       startCompare(true);

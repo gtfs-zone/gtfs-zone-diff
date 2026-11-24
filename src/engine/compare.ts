@@ -101,8 +101,8 @@ export class Comparison {
 
     const files: FileDiff[] = [];
     time('rows', () => {
-      for (const name of names) {
-        progress({ stage: 'rows', table: name });
+      for (const [index, name] of names.entries()) {
+        progress({ stage: 'rows', table: name, index, count: names.length });
         const diff = time(`rows:${name}`, () => this.diffFile(name, renames));
         files.push(diff);
         console.log(`[compare] ${name}: ${diff.status}`, diff.grouped);
