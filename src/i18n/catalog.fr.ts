@@ -120,6 +120,105 @@ export const fr: Translation<typeof en> = {
   'help.welcome.links': 'Liens',
   'help.welcome.linksText':
     "La barre d'adresse contient les deux flux et ce que vous regardez : un lien rouvre la même comparaison.",
+  'help.changes.label': 'Types de changement',
+  'help.changes.title': 'Ce que signifient les types de changement',
+  'help.changes.lede':
+    'Les lignes sont appariées par la clé de leur fichier, comme stop_id dans stops.txt ou trip_id et stop_sequence dans stop_times.txt. Les fichiers sans clé sont appariés sur des lignes entières.',
+  'help.changes.added': 'Ajouté',
+  'help.changes.addedText':
+    "Seulement dans le flux B : un fichier, ou une ligne dont le flux A n'a pas la clé.",
+  'help.changes.removed': 'Supprimé',
+  'help.changes.removedText':
+    "Seulement dans le flux A : un fichier, ou une ligne dont le flux B n'a pas la clé.",
+  'help.changes.changed': 'Modifié',
+  'help.changes.changedText':
+    'La même clé des deux côtés, et au moins une valeur diffère. Les cellules différentes sont surlignées.',
+  'help.changes.formatting': 'Mise en forme seulement',
+  'help.changes.formattingText':
+    "Les valeurs ont le même sens mais s'écrivent autrement : 8:00:00 et 08:00:00, 1.50 et 1.5, des espaces autour d'une valeur, un autre ordre des colonnes ou une autre fin de ligne.",
+  'help.changes.renamed': 'Renommé',
+  'help.changes.renamedText':
+    "Seul l'identifiant diffère : une ligne supprimée de A et une ligne ajoutée dans B ont été reconnues comme la même entité sous un nouvel identifiant.",
+  'help.changes.followsRename': 'Suit un renommage',
+  'help.changes.followsRenameText':
+    'La même clé, et la seule différence est un identifiant renommé auquel la ligne fait référence, comme une ligne de stop_times dont le stop_id a été renommé.',
+  'help.changes.files': 'Fichiers',
+  'help.changes.identical': 'Identique',
+  'help.changes.identicalText':
+    'Les mêmes octets, ou des lignes toutes égales sans aucun changement.',
+  'help.changes.unknown': 'Aucune ligne ne diffère',
+  'help.changes.unknownText':
+    "L'index du zip n'a pas pu être lu, les octets n'ont donc pas été comparés, et toutes les lignes sont égales.",
+  'help.renames.label': 'Renommages',
+  'help.renames.title': 'Comment les renommages sont reconnus',
+  'help.renames.lede':
+    'Un identifiant présent seulement dans le flux A et un autre seulement dans le flux B sont appariés quand leurs entités ont le même contenu. Chaque étape ci-dessous utilise les renommages trouvés avant elle.',
+  'help.renames.agencies': 'Agences',
+  'help.renames.agenciesText': 'agency_name et agency_timezone.',
+  'help.renames.routes': 'Lignes',
+  'help.renames.routesText':
+    "L'agence, route_short_name, route_long_name et route_type.",
+  'help.renames.stops': 'Arrêts',
+  'help.renames.stopsText':
+    "stop_name et location_type, à moins de 100 m l'un de l'autre. Les arrêts sans coordonnées sont appariés sur le nom seul.",
+  'help.renames.services': 'Services',
+  'help.renames.servicesText':
+    'Les dates où ils circulent, dans la période couverte par les deux flux.',
+  'help.renames.shapes': 'Tracés',
+  'help.renames.shapesText': 'Les mêmes points aux mêmes coordonnées.',
+  'help.renames.trips': 'Courses',
+  'help.renames.tripsText':
+    "La ligne, la direction, la girouette, les dates du service, le tracé, les arrêts dans l'ordre et leurs horaires.",
+  'help.renames.after': "Quand l'appariement n'est pas clair",
+  'help.renames.suggestions': 'Renommages possibles',
+  'help.renames.suggestionsText':
+    "Quand plusieurs identifiants d'un côté ont le même contenu, aucun n'est apparié. Ils sont listés comme renommages possibles à vérifier.",
+  'help.renames.settled': 'Services réglés par les courses',
+  'help.renames.settledText':
+    "Les services que les dates laissent ouverts sont appariés ensuite quand les courses passées de l'un à l'autre désignent un seul service.",
+  'help.renames.follows': 'Lignes qui renvoient à un identifiant renommé',
+  'help.renames.followsText':
+    'Une fois un identifiant apparié, les lignes qui y renvoient sont comparées sous le nouvel identifiant et apparaissent comme « Suit un renommage » au lieu de modifiées.',
+  'help.map.label': 'Carte',
+  'help.map.title': 'Couleurs de la carte et le choix A / Les deux / B',
+  'help.map.lede':
+    "La carte montre ce dont parle la page ouverte : toute la comparaison sur l'accueil, ou un fichier, un arrêt, une ligne, une course ou un tracé.",
+  'help.map.added': 'Vert : ajouté',
+  'help.map.addedText': 'Seulement dans le flux B.',
+  'help.map.removed': 'Rouge : supprimé',
+  'help.map.removedText': 'Seulement dans le flux A.',
+  'help.map.changed': 'Orange : modifié',
+  'help.map.changedText':
+    'Dans les deux flux mais différent. Un tracé modifié est dessiné deux fois : B en trait plein, A en pointillé.',
+  'help.map.unchanged': 'Gris : inchangé',
+  'help.map.unchangedText':
+    'Le contexte autour des changements, en trait plus fin.',
+  'help.map.moved': 'Arrêts déplacés',
+  'help.map.movedText':
+    "Une ligne pointillée de la position de l'arrêt dans le flux A à sa position dans le flux B.",
+  'help.map.toggle': 'A / Les deux / B',
+  'help.map.sideA': 'A',
+  'help.map.sideAText':
+    "Le flux A seul : ce qui a été supprimé, et l'ancienne position de ce qui a changé.",
+  'help.map.sideBoth': 'Les deux',
+  'help.map.sideBothText':
+    'Les deux flux, avec les arrêts déplacés en pointillé de A vers B.',
+  'help.map.sideB': 'B',
+  'help.map.sideBText':
+    'Le flux B seul : ce qui a été ajouté, et la nouvelle position de ce qui a changé.',
+  'help.export.label': 'Export',
+  'help.export.title': "Formats d'export",
+  'help.export.lede':
+    "La section Export de l'accueil télécharge la comparaison. Les deux fichiers sont créés dans votre navigateur.",
+  'help.export.v2': 'GTFS Diff v2 (JSON)',
+  'help.export.v2Text':
+    'Le format GTFS Diff de MobilityData : chaque ligne différente par sa clé, des statistiques par fichier et par colonne, et des points notables comme les identifiants renommés, les renommages possibles, les arrêts déplacés et les tracés modifiés. Une ligne renommée apparaît comme supprimée et ajoutée, avec un point notable qui nomme les deux.',
+  'help.export.summary': 'Résumé (Markdown)',
+  'help.export.summaryText':
+    'Un court rapport dans la langue de la page : les fichiers avec leurs comptes et les changements regroupés, 20 éléments au plus par groupe.',
+  'help.export.cap': 'Changements de lignes par fichier',
+  'help.export.capText':
+    'Limite les lignes que le JSON liste par fichier ; les comptes couvrent toujours toutes les lignes. Vide, toutes les lignes sont listées, ce qui peut prendre des minutes et des gigaoctets de mémoire sur de gros flux.',
   'help.about.blurb':
     'diff.gtfs.zone compare deux flux GTFS : chaque différence entre eux, regroupée comme on lit des données de transport.',
   'help.about.blurb2':

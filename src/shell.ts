@@ -6,6 +6,7 @@
 import { mountAppShell } from 'gtfs-zone-web-common/ui/app-shell';
 import { escapeHtml } from 'gtfs-zone-web-common/util/escape-html';
 import { t } from './i18n/messages';
+import { helpButton } from './modules/help-pages';
 import { STATUS_COLORS, type MapSide } from './modules/map-layers';
 
 const SIDES: { side: MapSide; label: string; tip: string }[] = [
@@ -31,7 +32,8 @@ const MAP_SIDE_CONTROL = `
             `<button type="button" class="join-item btn btn-sm${side === 'both' ? ' btn-active' : ''}" data-map-side="${side}" title="${escapeHtml(tip)}" aria-pressed="${side === 'both'}">${escapeHtml(label)}</button>`
         ).join('')}
       </div>
-      <div class="hidden sm:flex items-center gap-2 text-xs pr-1">${LEGEND}</div>
+      <div class="hidden sm:flex items-center gap-2 text-xs">${LEGEND}</div>
+      ${helpButton('map')}
     </div>
   </div>`;
 

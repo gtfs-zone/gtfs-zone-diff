@@ -119,6 +119,104 @@ export const de: Translation<typeof en> = {
   'help.welcome.links': 'Links',
   'help.welcome.linksText':
     'Die Adresszeile enthält beide Feeds und die aktuelle Ansicht, ein Link öffnet also denselben Vergleich.',
+  'help.changes.label': 'Änderungsarten',
+  'help.changes.title': 'Was die Änderungsarten bedeuten',
+  'help.changes.lede':
+    'Zeilen werden über den Schlüssel ihrer Datei zugeordnet, etwa stop_id in stops.txt oder trip_id und stop_sequence in stop_times.txt. Dateien ohne Schlüssel werden über ganze Zeilen zugeordnet.',
+  'help.changes.added': 'Hinzugefügt',
+  'help.changes.addedText':
+    'Nur in Feed B: eine Datei oder eine Zeile, deren Schlüssel Feed A nicht hat.',
+  'help.changes.removed': 'Entfernt',
+  'help.changes.removedText':
+    'Nur in Feed A: eine Datei oder eine Zeile, deren Schlüssel Feed B nicht hat.',
+  'help.changes.changed': 'Geändert',
+  'help.changes.changedText':
+    'Derselbe Schlüssel auf beiden Seiten, und mindestens ein Wert unterscheidet sich. Die abweichenden Zellen sind hervorgehoben.',
+  'help.changes.formatting': 'Nur Formatierung',
+  'help.changes.formattingText':
+    'Die Werte bedeuten dasselbe, sind aber anders geschrieben: 8:00:00 und 08:00:00, 1.50 und 1.5, Leerzeichen um einen Wert, eine andere Spaltenreihenfolge oder ein anderes Zeilenende.',
+  'help.changes.renamed': 'Umbenannt',
+  'help.changes.renamedText':
+    'Nur die ID unterscheidet sich: eine aus A entfernte und eine in B hinzugefügte Zeile wurden als dieselbe Entität unter neuer ID erkannt.',
+  'help.changes.followsRename': 'Folgt einer Umbenennung',
+  'help.changes.followsRenameText':
+    'Derselbe Schlüssel, und der einzige Unterschied ist eine umbenannte ID, auf die die Zeile verweist, etwa eine stop_times-Zeile, deren stop_id umbenannt wurde.',
+  'help.changes.files': 'Dateien',
+  'help.changes.identical': 'Identisch',
+  'help.changes.identicalText':
+    'Dieselben Bytes, oder Zeilen, die alle gleich sind, ohne jede Änderung.',
+  'help.changes.unknown': 'Keine Zeile weicht ab',
+  'help.changes.unknownText':
+    'Der Zip-Index konnte nicht gelesen werden, die Bytes wurden also nicht verglichen, und alle Zeilen sind gleich.',
+  'help.renames.label': 'Umbenennungen',
+  'help.renames.title': 'Wie Umbenennungen erkannt werden',
+  'help.renames.lede':
+    'Eine ID nur in Feed A und eine ID nur in Feed B werden zugeordnet, wenn ihre Entitäten inhaltlich übereinstimmen. Jeder Schritt unten nutzt die zuvor gefundenen Umbenennungen.',
+  'help.renames.agencies': 'Verkehrsunternehmen',
+  'help.renames.agenciesText': 'agency_name und agency_timezone.',
+  'help.renames.routes': 'Linien',
+  'help.renames.routesText':
+    'Das Verkehrsunternehmen, route_short_name, route_long_name und route_type.',
+  'help.renames.stops': 'Haltestellen',
+  'help.renames.stopsText':
+    'stop_name und location_type, höchstens 100 m voneinander entfernt. Haltestellen ohne Koordinaten werden nur über den Namen zugeordnet.',
+  'help.renames.services': 'Verkehrstage',
+  'help.renames.servicesText':
+    'Die Tage, an denen sie gelten, im Zeitraum, den beide Feeds abdecken.',
+  'help.renames.shapes': 'Linienverläufe',
+  'help.renames.shapesText': 'Dieselben Punkte mit denselben Koordinaten.',
+  'help.renames.trips': 'Fahrten',
+  'help.renames.tripsText':
+    'Linie, Richtung, Fahrtziel, Verkehrstage, Linienverlauf, die Haltestellen in ihrer Reihenfolge und ihre Zeiten.',
+  'help.renames.after': 'Wenn die Zuordnung nicht eindeutig ist',
+  'help.renames.suggestions': 'Mögliche Umbenennungen',
+  'help.renames.suggestionsText':
+    'Passen mehrere IDs einer Seite auf denselben Inhalt, wird keine zugeordnet. Sie werden als mögliche Umbenennungen zur Prüfung aufgelistet.',
+  'help.renames.settled': 'Über Fahrten zugeordnete Verkehrstage',
+  'help.renames.settledText':
+    'Verkehrstage, die über die Daten offen bleiben, werden danach zugeordnet, wenn die zwischen ihnen gewechselten Fahrten auf genau einen zeigen.',
+  'help.renames.follows': 'Zeilen, die auf eine umbenannte ID verweisen',
+  'help.renames.followsText':
+    'Ist eine ID zugeordnet, werden Zeilen, die auf sie verweisen, unter der neuen ID verglichen und erscheinen als „Folgt einer Umbenennung“ statt als geändert.',
+  'help.map.label': 'Karte',
+  'help.map.title': 'Kartenfarben und die Auswahl A / Beide / B',
+  'help.map.lede':
+    'Die Karte zeigt, worum es auf der offenen Seite geht: den ganzen Vergleich auf der Startseite, oder eine Datei, Haltestelle, Linie, Fahrt oder einen Linienverlauf.',
+  'help.map.added': 'Grün: hinzugefügt',
+  'help.map.addedText': 'Nur in Feed B.',
+  'help.map.removed': 'Rot: entfernt',
+  'help.map.removedText': 'Nur in Feed A.',
+  'help.map.changed': 'Orange: geändert',
+  'help.map.changedText':
+    'In beiden Feeds, aber verschieden. Ein geänderter Linienverlauf wird zweimal gezeichnet: B durchgezogen, A gestrichelt.',
+  'help.map.unchanged': 'Grau: unverändert',
+  'help.map.unchangedText': 'Umgebung der Änderungen, dünner gezeichnet.',
+  'help.map.moved': 'Verschobene Haltestellen',
+  'help.map.movedText':
+    'Eine gestrichelte Linie von der Lage der Haltestelle in Feed A zu ihrer Lage in Feed B.',
+  'help.map.toggle': 'A / Beide / B',
+  'help.map.sideA': 'A',
+  'help.map.sideAText':
+    'Nur Feed A: Entferntes und die alte Lage von Geändertem.',
+  'help.map.sideBoth': 'Beide',
+  'help.map.sideBothText':
+    'Beide Feeds, verschobene Haltestellen als gestrichelte Linie von A nach B.',
+  'help.map.sideB': 'B',
+  'help.map.sideBText':
+    'Nur Feed B: Hinzugefügtes und die neue Lage von Geändertem.',
+  'help.export.label': 'Export',
+  'help.export.title': 'Exportformate',
+  'help.export.lede':
+    'Der Bereich Export auf der Startseite lädt den Vergleich herunter. Beide Dateien entstehen in Ihrem Browser.',
+  'help.export.v2': 'GTFS Diff v2 (JSON)',
+  'help.export.v2Text':
+    'Das GTFS-Diff-Format von MobilityData: jede abweichende Zeile über ihren Schlüssel, Statistiken je Datei und Spalte und Hinweise wie umbenannte IDs, mögliche Umbenennungen, verschobene Haltestellen und geänderte Linienverläufe. Eine umbenannte Zeile erscheint als entfernt und hinzugefügt, mit einem Hinweis, der beide nennt.',
+  'help.export.summary': 'Zusammenfassung (Markdown)',
+  'help.export.summaryText':
+    'Ein kurzer Bericht in der Sprache der Seite: die Dateien mit ihren Zahlen und die gruppierten Änderungen, höchstens 20 Einträge je Gruppe.',
+  'help.export.cap': 'Zeilenänderungen je Datei',
+  'help.export.capText':
+    'Begrenzt die Zeilen, die das JSON je Datei auflistet; die Zahlen umfassen immer alle Zeilen. Leer werden alle Zeilen aufgelistet, was bei großen Feeds Minuten und Gigabytes an Speicher kosten kann.',
   'help.about.blurb':
     'diff.gtfs.zone vergleicht zwei GTFS-Feeds: jeder Unterschied zwischen ihnen, gruppiert so, wie man Fahrplandaten liest.',
   'help.about.blurb2':

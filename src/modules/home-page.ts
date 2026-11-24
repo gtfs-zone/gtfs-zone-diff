@@ -13,6 +13,7 @@ import type { PageLocation } from '../types/page-state';
 import { appLinkButtons } from './app-links';
 import { renderCompareStatus } from './compare-status';
 import { exportCap } from './export-actions';
+import { helpButton } from './help-pages';
 import type { PageContext } from './page-context';
 import {
   comparisonLabel,
@@ -117,6 +118,7 @@ function exportSection(ctx: PageContext): TreeSection {
     `<button class="btn btn-sm" data-action="export" data-arg="${kind}"${busy}>${escapeHtml(label)}</button>`;
   return {
     title: t('export.title'),
+    titleExtra: helpButton('export'),
     body: `
       <div class="flex flex-col gap-2">
         <p class="text-xs opacity-70">${t('export.lede')}</p>
@@ -163,18 +165,23 @@ function resultSections(ctx: PageContext, r: DiffResult): TreeSection[] {
         empty: t('results.noFiles'),
       },
       {
+        titleExtra: helpButton('changes'),
         body: changed
           ? ''
           : `<p class="text-sm opacity-70">${t('results.noChanges')}</p>`,
       }
     ),
-    listSection(t('results.groups'), {
-      name: 'groups',
-      items: r.groups,
-      row: (g) => groupRow(ctx, g),
-      searchText: groupLabel,
-      empty: t('results.noGroups'),
-    })
+    listSection(
+      t('results.groups'),
+      {
+        name: 'groups',
+        items: r.groups,
+        row: (g) => groupRow(ctx, g),
+        searchText: groupLabel,
+        empty: t('results.noGroups'),
+      },
+      { titleExtra: helpButton('renames') }
+    )
   );
   sections.push(exportSection(ctx));
   if (r.issues.length > 0) {

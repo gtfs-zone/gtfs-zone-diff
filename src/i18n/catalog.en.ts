@@ -114,6 +114,104 @@ export const en = {
   'help.welcome.links': 'Links',
   'help.welcome.linksText':
     'The address bar holds both feeds and what you are looking at, so a link opens the same comparison.',
+  'help.changes.label': 'Change kinds',
+  'help.changes.title': 'What the change kinds mean',
+  'help.changes.lede':
+    'Rows are matched by the key of their file, such as stop_id in stops.txt or trip_id and stop_sequence in stop_times.txt. Files without a key are matched on whole rows.',
+  'help.changes.added': 'Added',
+  'help.changes.addedText':
+    'Only in feed B: a file, or a row whose key feed A does not have.',
+  'help.changes.removed': 'Removed',
+  'help.changes.removedText':
+    'Only in feed A: a file, or a row whose key feed B does not have.',
+  'help.changes.changed': 'Changed',
+  'help.changes.changedText':
+    'The same key on both sides, and at least one value differs. The differing cells are highlighted.',
+  'help.changes.formatting': 'Formatting only',
+  'help.changes.formattingText':
+    'The values mean the same but are written differently: 8:00:00 and 08:00:00, 1.50 and 1.5, spaces around a value, another column order or line ending.',
+  'help.changes.renamed': 'Renamed',
+  'help.changes.renamedText':
+    'Only the id differs: a row removed from A and one added in B were matched as the same entity under a new id.',
+  'help.changes.followsRename': 'Follows a rename',
+  'help.changes.followsRenameText':
+    'The same key, and the only difference is a renamed id the row refers to, such as a stop_times row whose stop_id was renamed.',
+  'help.changes.files': 'Files',
+  'help.changes.identical': 'Identical',
+  'help.changes.identicalText':
+    'The same bytes, or rows that all compare equal with nothing changed.',
+  'help.changes.unknown': 'No row differs',
+  'help.changes.unknownText':
+    'The zip index could not be read, so the bytes were not compared, and every row compares equal.',
+  'help.renames.label': 'Renames',
+  'help.renames.title': 'How renames are matched',
+  'help.renames.lede':
+    'An id only in feed A and an id only in feed B are paired when their entities match on content. Each step below uses the renames found before it.',
+  'help.renames.agencies': 'Agencies',
+  'help.renames.agenciesText': 'agency_name and agency_timezone.',
+  'help.renames.routes': 'Routes',
+  'help.renames.routesText':
+    'The agency, route_short_name, route_long_name and route_type.',
+  'help.renames.stops': 'Stops',
+  'help.renames.stopsText':
+    'stop_name and location_type, within 100 m of each other. Stops without coordinates pair on the name alone.',
+  'help.renames.services': 'Services',
+  'help.renames.servicesText':
+    'The dates they run, within the period both feeds cover.',
+  'help.renames.shapes': 'Shapes',
+  'help.renames.shapesText': 'The same points with the same coordinates.',
+  'help.renames.trips': 'Trips',
+  'help.renames.tripsText':
+    'The route, direction, headsign, service dates, shape, stops in order and their times.',
+  'help.renames.after': 'When the match is not clear',
+  'help.renames.suggestions': 'Possible renames',
+  'help.renames.suggestionsText':
+    'When several ids on one side match the same content, none of them is paired. They are listed as possible renames for you to check.',
+  'help.renames.settled': 'Services settled by trips',
+  'help.renames.settledText':
+    'Services the dates left open are paired afterwards when the trips that moved between them point to one service.',
+  'help.renames.follows': 'Rows that refer to a renamed id',
+  'help.renames.followsText':
+    'Once an id is paired, rows that refer to it compare under the new id and show as "Follows a rename" instead of changed.',
+  'help.map.label': 'Map',
+  'help.map.title': 'Map colours and the A / Both / B toggle',
+  'help.map.lede':
+    'The map draws what the open page is about: the whole comparison on the home page, or one file, stop, route, trip or shape.',
+  'help.map.added': 'Green: added',
+  'help.map.addedText': 'Only in feed B.',
+  'help.map.removed': 'Red: removed',
+  'help.map.removedText': 'Only in feed A.',
+  'help.map.changed': 'Amber: changed',
+  'help.map.changedText':
+    'In both feeds but different. A changed shape is drawn twice: B as a solid line, A dashed.',
+  'help.map.unchanged': 'Grey: unchanged',
+  'help.map.unchangedText': 'Context around the changes, drawn thinner.',
+  'help.map.moved': 'Moved stops',
+  'help.map.movedText':
+    'A dashed line from where the stop is in feed A to where it is in feed B.',
+  'help.map.toggle': 'A / Both / B',
+  'help.map.sideA': 'A',
+  'help.map.sideAText':
+    'Feed A only: what was removed, and the old position of what changed.',
+  'help.map.sideBoth': 'Both',
+  'help.map.sideBothText':
+    'Both feeds, with moved stops as a dashed line from A to B.',
+  'help.map.sideB': 'B',
+  'help.map.sideBText':
+    'Feed B only: what was added, and the new position of what changed.',
+  'help.export.label': 'Export',
+  'help.export.title': 'Export formats',
+  'help.export.lede':
+    'The Export section on the home page downloads the comparison. Both files are built in your browser.',
+  'help.export.v2': 'GTFS Diff v2 (JSON)',
+  'help.export.v2Text':
+    'The MobilityData GTFS Diff format: every differing row by its key, statistics per file and column, and highlights such as renamed ids, possible renames, moved stops and changed shapes. A renamed row is listed as removed and added, with a highlight naming both.',
+  'help.export.summary': 'Summary (Markdown)',
+  'help.export.summaryText':
+    'A short report in the page language: the files with their counts and the grouped changes, up to 20 items per group.',
+  'help.export.cap': 'Row changes per file',
+  'help.export.capText':
+    'Limits the rows the JSON lists per file; counts still cover every row. Empty lists every row, which on big feeds can take minutes and gigabytes of memory.',
   'help.about.blurb':
     'diff.gtfs.zone compares two GTFS feeds: every difference between them, grouped the way transit data is read.',
   'help.about.blurb2':

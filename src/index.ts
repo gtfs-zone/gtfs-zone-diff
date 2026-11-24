@@ -310,6 +310,9 @@ function onAction(action: string, arg: string): void {
         void exportAs(arg);
       }
       break;
+    case 'help':
+      openHelp(arg);
+      break;
   }
 }
 
@@ -344,6 +347,15 @@ async function exportAs(kind: 'v2' | 'summary'): Promise<void> {
 document
   .getElementById('help-btn')!
   .addEventListener('click', () => openHelp());
+
+document.getElementById('map-side-card')!.addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLElement>(
+    '[data-action="help"]'
+  );
+  if (btn) {
+    openHelp(btn.dataset.arg);
+  }
+});
 
 new BottomSheetController(document.getElementById('right-panel')!, [
   { id: 'dock-browse' },
