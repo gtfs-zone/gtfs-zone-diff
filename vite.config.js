@@ -76,7 +76,8 @@ export default defineConfig({
     format: 'es',
   },
   optimizeDeps: {
-    include: ['maplibre-gl'],
+    // papaparse is CommonJS, imported only from gtfs-zone-web-common
+    include: ['maplibre-gl', 'papaparse'],
     // gtfs-zone-web-common ships raw .ts; let vite transform it as source
     exclude: ['gtfs-zone-web-common'],
   },
