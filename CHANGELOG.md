@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.3.0 (2026-11-25)
+
+### Feat
+
+- **sources**: keep both feeds in this browser so a refresh reopens them
+- **groups**: detect merged and split stops
+- **map**: spotlight the page's focus and dim the rest of its scope
+- **map**: click on an empty spot goes up one breadcrumb
+- **map**: draw the stop list as before or after when a trip gains or loses a shape
+
+### Fix
+
+- **map**: draw a trip whose shape_id has no points by its stops
+
 ## v0.2.1 (2026-11-25)
 
 ## v0.2.0 (2026-11-25)
