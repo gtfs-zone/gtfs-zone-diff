@@ -13,6 +13,7 @@ import type { FeedPair, SideData } from './pair';
 import type { Renames } from './renames';
 import type { TableResult } from './rows';
 import type { ShapesResult } from './shapes';
+import type { StopMerges } from './stop-merges';
 import type {
   EntityStatus,
   MapFeatureProps,
@@ -166,13 +167,18 @@ export class GeometryReader {
     private renames: Renames,
     private reader: EntityReader,
     private stops: TableResult | null,
-    private shapes: ShapesResult | null
+    private shapes: ShapesResult | null,
+    private merges: StopMerges
   ) {}
 
   read(scope: MapScope): MapGeometry {
     const out = new Builder();
     switch (scope.type) {
       case 'overview':
+        if (scope.layer === 'merged') {
+          this.overviewMerges(out);
+          break;
+        }
         if (scope.layer !== 'shapes') {
           this.overviewStops(out, scope.layer === 'moved');
         }
@@ -306,6 +312,62 @@ export class GeometryReader {
         rb,
         movedOnly
       );
+    }
+  }
+
+  /**
+   * Merged and split stops: each A stop hollow red, each B stop green, and a
+   * dashed line from every A stop to the B stop it gave way to.
+   */
+  private overviewMerges(out: Builder): void {
+    const { a, b } = this.pair;
+    const pairs: [string, string][] = [];
+    for (const item of [
+      ...this.merges.merged,
+      ...this.merges.split,
+      ...this.merges.suggestions,
+    ]) {
+      if (item.kind === 'stopMerged') {
+        pairs.push(...item.a.map((x): [string, string] => [x, item.b]));
+      } else {
+        pairs.push(...item.b.map((y): [string, string] => [item.a, y]));
+      }
+    }
+    const drawnA = new Set<string>();
+    const drawnB = new Set<string>();
+    for (const [x, y] of pairs) {
+      const pa = position(this.stopRow(a, x));
+      const pb = position(this.stopRow(b, y));
+      if (pa && pb) {
+        out.line([pa, pb], {
+          kind: 'move',
+          status: 'changed',
+          side: 'both',
+          page: 'stop',
+          id: y,
+        });
+      }
+      if (pa && !drawnA.has(x)) {
+        drawnA.add(x);
+        out.point(pa, {
+          kind: 'stop',
+          status: 'removed',
+          side: 'a',
+          page: 'stop',
+          id: x,
+          hollow: true,
+        });
+      }
+      if (pb && !drawnB.has(y)) {
+        drawnB.add(y);
+        out.point(pb, {
+          kind: 'stop',
+          status: 'added',
+          side: 'b',
+          page: 'stop',
+          id: y,
+        });
+      }
     }
   }
 

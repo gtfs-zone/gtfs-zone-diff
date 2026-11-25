@@ -34,6 +34,13 @@ export function mapScope(loc: PageLocation, result: DiffResult): MapScope {
       if (kind === 'stopMoved') {
         return { type: 'overview', layer: 'moved' };
       }
+      if (
+        kind === 'stopMerged' ||
+        kind === 'stopSplit' ||
+        kind === 'stopMergeSuggestion'
+      ) {
+        return { type: 'overview', layer: 'merged' };
+      }
       if (kind === 'shapeChanged') {
         return { type: 'overview', layer: 'shapes' };
       }

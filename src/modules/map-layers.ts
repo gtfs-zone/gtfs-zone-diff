@@ -1,7 +1,7 @@
 /**
  * The changes on the map: one GeoJSON source, lines and stops coloured by
  * status (added green, removed red, changed amber, unchanged grey), A-side
- * geometry of a changed entity and moved-stop lines dashed, and an A / B /
+ * geometry of a changed entity and moved, merged or split stop lines dashed, and an A / B /
  * both filter on the feed each feature comes from. The page's focus is drawn
  * wider and on top, the rest dimmed; a hovered panel row does the same for
  * its features.
@@ -198,11 +198,15 @@ export class MapLayers {
         'line-width': widthByZoom(2, 6, FOCUS_LINE_BUMP),
       },
     });
-    // The A position of a moved stop is hollow; its B position is filled.
+    // The A position of a moved, merged or split stop is hollow; B is filled.
     const hollow = [
-      'all',
-      ['==', ['get', 'side'], 'a'],
-      ['==', ['get', 'status'], 'changed'],
+      'any',
+      ['==', ['get', 'hollow'], true],
+      [
+        'all',
+        ['==', ['get', 'side'], 'a'],
+        ['==', ['get', 'status'], 'changed'],
+      ],
     ];
     map.addLayer({
       id: STOPS_LAYER,

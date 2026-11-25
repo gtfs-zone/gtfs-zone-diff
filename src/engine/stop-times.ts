@@ -46,6 +46,11 @@ export interface StopTimesResult {
   changedCells: Record<string, number>;
   formattingCells: Record<string, number>;
   trips: TripChange[];
+  /**
+   * `x\x1fy` -> B trip indexes where A stop `x` (as B names it) gave way to
+   * B stop `y` at the same place in the stop list.
+   */
+  stopVotes: Map<string, number[]>;
   groups: {
     timeShift: Extract<GroupItem, { kind: 'timeShift' }>[];
     patternChange: Extract<GroupItem, { kind: 'patternChange' }>[];
@@ -243,6 +248,7 @@ export function diffStopTimes(
     changedCells: {},
     formattingCells: {},
     trips: [],
+    stopVotes: new Map(),
     groups: {
       timeShift: [],
       patternChange: [],
@@ -377,6 +383,32 @@ export function diffStopTimes(
     return counts;
   };
 
+  /**
+   * Votes for a removed run of A stops replaced by an added run of B stops:
+   * each A stop to each B stop when one run is a single stop, else stop by
+   * stop when the runs have the same length.
+   */
+  const vote = (xs: string[], ys: string[], u: number): void => {
+    const cast = (x: string, y: string): void => {
+      const key = `${x}\x1f${y}`;
+      const list = result.stopVotes.get(key);
+      if (!list) {
+        result.stopVotes.set(key, [u]);
+      } else if (list[list.length - 1] !== u) {
+        list.push(u);
+      }
+    };
+    if (xs.length === 1 || ys.length === 1) {
+      for (const x of xs) {
+        for (const y of ys) {
+          cast(x, y);
+        }
+      }
+    } else if (xs.length === ys.length) {
+      xs.forEach((x, i) => cast(x, ys[i]));
+    }
+  };
+
   /** Timetable groups for a trip pair that differs in content. */
   const groupPair = (t: number, u: number, changedCols: Set<string>): void => {
     const tripB = pb.tripId(u);
@@ -391,11 +423,16 @@ export function diffStopTimes(
     if (!sameStops) {
       const added: string[] = [];
       const removed: string[] = [];
-      for (const part of diffArrays(stopsA, stopsB)) {
+      const parts = diffArrays(stopsA, stopsB);
+      for (const [i, part] of parts.entries()) {
         if (part.added) {
           added.push(...part.value);
         } else if (part.removed) {
           removed.push(...part.value);
+          const next = parts[i + 1];
+          if (next?.added) {
+            vote(part.value, next.value, u);
+          }
         }
       }
       bump(

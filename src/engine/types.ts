@@ -138,6 +138,9 @@ export type GroupKind =
   | 'stopTimesTimes'
   | 'tripCount'
   | 'stopMoved'
+  | 'stopMerged'
+  | 'stopSplit'
+  | 'stopMergeSuggestion'
   | 'shapeChanged';
 
 /** One smart group: a label, a count, and the files its rows live in. */
@@ -202,6 +205,31 @@ export type GroupItem =
       b: number;
     }
   | { kind: 'stopMoved'; a: string; b: string; metres: number }
+  | {
+      kind: 'stopMerged';
+      /** Removed A stops, and each one's distance to the B stop. */
+      a: string[];
+      metres: number[];
+      /** The added B stop they gave way to. */
+      b: string;
+      /** Paired trips that show the change. */
+      trips: number;
+      /** The weakest A stop's share of its votes going to `b`, 0 to 1. */
+      share: number;
+    }
+  | {
+      kind: 'stopSplit';
+      /** The removed A stop. */
+      a: string;
+      /** Added B stops it gave way to, and each one's distance to it. */
+      b: string[];
+      metres: number[];
+      trips: number;
+      /** The weakest B stop's share of its votes coming from `a`, 0 to 1. */
+      share: number;
+      /** The parent_station every B stop shares, when they are its platforms. */
+      station: string | null;
+    }
   | {
       kind: 'shapeChanged';
       a: string;
@@ -330,12 +358,17 @@ export interface EntityView {
   shape?: { pointsA: number; pointsB: number; metres: number | null };
   /** Trips using a service or shape, per side. */
   tripCount?: { a: number; b: number };
+  /** The stop merge or split the stop takes part in, and its group. */
+  stopMerge?: {
+    group: string;
+    item: Extract<GroupItem, { kind: 'stopMerged' | 'stopSplit' }>;
+  };
   crumbs: CrumbLabels;
 }
 
 /** What the map shows: the changes overview (one layer of it), or one page. */
 export type MapScope =
-  | { type: 'overview'; layer?: 'stops' | 'shapes' | 'moved' }
+  | { type: 'overview'; layer?: 'stops' | 'shapes' | 'moved' | 'merged' }
   | { type: 'stop' | 'trip' | 'route' | 'shape'; id: string };
 
 export type MapStatus = 'added' | 'removed' | 'changed' | 'unchanged';
@@ -351,6 +384,8 @@ export interface MapFeatureProps {
   id: string;
   /** The page's focus, drawn on top; false is context, drawn dimmed. */
   focus: boolean;
+  /** Drawn as a ring: a stop's A position that gave way to another. */
+  hollow?: boolean;
 }
 
 export interface MapGeometry {

@@ -95,6 +95,10 @@ export const fr: Translation<typeof en> = {
   'results.group.stopTimesTimes': 'Courses aux horaires modifiés',
   'results.group.tripCount': 'Lignes au nombre de courses différent',
   'results.group.stopMoved': 'Arrêts déplacés',
+  'results.group.stopMerged': 'Arrêts fusionnés',
+  'results.group.stopSplit': 'Arrêts scindés',
+  'results.group.stopMergeSuggestion':
+    "Fusions et scissions d'arrêts possibles",
   'results.group.shapeChanged': 'Tracés modifiés',
   'results.issues': 'Problèmes dans les flux',
   'results.issue.duplicateKeys':
@@ -196,6 +200,9 @@ export const fr: Translation<typeof en> = {
   'help.map.moved': 'Arrêts déplacés',
   'help.map.movedText':
     "Une ligne pointillée de la position de l'arrêt dans le flux A à sa position dans le flux B.",
+  'help.map.merged': 'Arrêts fusionnés et scindés',
+  'help.map.mergedText':
+    "Les arrêts retirés de A en rouge creux, ceux qui les remplacent dans B en vert, et une ligne pointillée de chacun vers son remplaçant. Trouvés à partir des courses qui desservent le nouvel arrêt là où elles desservaient l'ancien, à moins de 150 m.",
   'help.map.shapeSwap': 'Tracé ajouté ou supprimé',
   'help.map.shapeSwapText':
     "Quand un trajet gagne un tracé, son ancienne liste d'arrêts est dessinée en rouge, en segments droits entre ses arrêts ; quand il en perd un, sa nouvelle liste d'arrêts est dessinée en vert.",
@@ -215,7 +222,7 @@ export const fr: Translation<typeof en> = {
     "La section Export de l'accueil télécharge la comparaison. Les deux fichiers sont créés dans votre navigateur.",
   'help.export.v2': 'GTFS Diff v2 (JSON)',
   'help.export.v2Text':
-    'Le format GTFS Diff de MobilityData : chaque ligne différente par sa clé, des statistiques par fichier et par colonne, et des points notables comme les identifiants renommés, les renommages possibles, les arrêts déplacés et les tracés modifiés. Une ligne renommée apparaît comme supprimée et ajoutée, avec un point notable qui nomme les deux.',
+    'Le format GTFS Diff de MobilityData : chaque ligne différente par sa clé, des statistiques par fichier et par colonne, et des points notables comme les identifiants renommés, les renommages possibles, les arrêts déplacés, fusionnés et scindés et les tracés modifiés. Une ligne renommée apparaît comme supprimée et ajoutée, avec un point notable qui nomme les deux.',
   'help.export.summary': 'Résumé (Markdown)',
   'help.export.summaryText':
     'Un court rapport dans la langue de la page : les fichiers avec leurs comptes et les changements regroupés, 20 éléments au plus par groupe.',
@@ -272,6 +279,11 @@ export const fr: Translation<typeof en> = {
   'group.columns': 'colonnes : {cols}',
   'group.tripCount': 'direction {direction} : {a} courses dans A, {b} dans B',
   'group.movedBy': 'déplacé de {metres} m',
+  'group.merged': '{a} fusionnés en {b}',
+  'group.split': '{a} scindé en {b}',
+  'group.splitStation': '{a} scindé en {b}, quais de {station}',
+  'group.apart': 'à {metres} m',
+  'group.share': '{percent} % des courses concordent',
   'group.shapeChanged':
     "jusqu'à {metres} m d'écart, {a} points dans A, {b} dans B",
   'group.unknown': "Cette comparaison n'a pas ce groupe.",

@@ -18,6 +18,7 @@ import { FeedPair, type LoadedSide, type SideData } from './pair';
 import { findRenames, type Renames } from './renames';
 import { diffTable, emptyGrouped, emptyRaw, type TableResult } from './rows';
 import { diffShapes, type ShapesResult } from './shapes';
+import { findStopMerges, type StopMerges } from './stop-merges';
 import { diffStopTimes, type StopTimesResult } from './stop-times';
 import {
   ENTITY_KINDS,
@@ -71,6 +72,7 @@ export class Comparison {
   private stopTimes: StopTimesResult | null = null;
   private shapes: ShapesResult | null = null;
   private items = new Map<string, GroupItem[]>();
+  private merges: StopMerges = { merged: [], split: [], suggestions: [] };
   private renames: Renames;
   private reader: EntityReader | null = null;
   private geometry: GeometryReader | null = null;
@@ -372,6 +374,20 @@ export class Comparison {
       homeFiles.service_id
     );
     add('stopMoved', 'stopMoved', this.movedStops(), ['stops.txt']);
+    this.merges = findStopMerges(
+      this.pair,
+      this.tables.get('stops.txt') ?? null,
+      this.stopTimes?.stopVotes ?? null
+    );
+    const mergeFiles = ['stops.txt', 'stop_times.txt'];
+    add('stopMerged', 'stopMerged', this.merges.merged, mergeFiles);
+    add('stopSplit', 'stopSplit', this.merges.split, mergeFiles);
+    add(
+      'stopMergeSuggestion',
+      'stopMergeSuggestion',
+      this.merges.suggestions,
+      mergeFiles
+    );
     const st = this.stopTimes;
     if (st) {
       const covers = (list: { trips: number }[]): number =>
@@ -487,7 +503,39 @@ export class Comparison {
 
   /** One entity on both sides, for its page. */
   entity(type: PageEntity, id: string): EntityView {
-    return this.entities().read(type, id);
+    const view = this.entities().read(type, id);
+    if (type === 'stop') {
+      const merge = this.stopMerge(view.a, view.b);
+      if (merge) {
+        view.stopMerge = merge;
+      }
+    }
+    return view;
+  }
+
+  /** The merge or split a removed A stop or an added B stop takes part in. */
+  private stopMerge(
+    a: string | null,
+    b: string | null
+  ): EntityView['stopMerge'] {
+    const lists = [
+      ['stopMerged', this.merges.merged],
+      ['stopSplit', this.merges.split],
+      ['stopMergeSuggestion', this.merges.suggestions],
+    ] as const;
+    for (const [group, list] of lists) {
+      for (const item of list) {
+        const idsA = item.kind === 'stopMerged' ? item.a : [item.a];
+        const idsB = item.kind === 'stopMerged' ? [item.b] : item.b;
+        if (
+          (a !== null && b === null && idsA.includes(a)) ||
+          (b !== null && a === null && idsB.includes(b))
+        ) {
+          return { group, item };
+        }
+      }
+    }
+    return undefined;
   }
 
   /** The search index over both sides. */
@@ -503,7 +551,8 @@ export class Comparison {
       this.renames,
       this.entities(),
       this.tables.get('stops.txt') ?? null,
-      this.shapes
+      this.shapes,
+      this.merges
     );
     return this.geometry.read(scope);
   }

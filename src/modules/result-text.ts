@@ -150,6 +150,9 @@ const GROUP_UNIT: Record<GroupKind, Key> = {
   stopTimesTimes: 'unit.routes',
   tripCount: 'unit.routes',
   stopMoved: 'unit.stops',
+  stopMerged: 'unit.stops',
+  stopSplit: 'unit.stops',
+  stopMergeSuggestion: 'unit.stops',
   shapeChanged: 'unit.shapes',
 };
 
