@@ -60,7 +60,10 @@ export class MapController implements PanelResizeTarget {
   private resizeTimer: ReturnType<typeof setTimeout> | null = null;
   private autoZoom = new AutoZoom(() => this.fit(true));
 
-  constructor(private onPick: (props: MapFeatureProps) => void) {}
+  constructor(
+    private onPick: (props: MapFeatureProps) => void,
+    private onEmpty: () => void
+  ) {}
 
   initialize(container: string): void {
     const view = readStored<MapView>(CONFIG.MAP_VIEW_KEY) ?? DEFAULT_VIEW;
@@ -87,7 +90,11 @@ export class MapController implements PanelResizeTarget {
     map.on('moveend', () => this.queueViewSave());
     this.map = map;
 
-    const layers = new MapLayers(map, (props) => this.onPick(props));
+    const layers = new MapLayers(
+      map,
+      (props) => this.onPick(props),
+      () => this.onEmpty()
+    );
     this.layers = layers;
     map.once('load', () => {
       layers.rebuild();

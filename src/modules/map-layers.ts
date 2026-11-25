@@ -10,8 +10,8 @@ import type {
   FilterSpecification,
   GeoJSONSource,
   Map as MapLibreMap,
-  MapGeoJSONFeature,
 } from 'maplibre-gl';
+import { onMapClick } from 'gtfs-zone-web-common/map/click-away';
 import type { MapFeatureProps, MapGeometry } from '../engine/types';
 
 export type MapSide = 'a' | 'b' | 'both';
@@ -98,7 +98,8 @@ export class MapLayers {
 
   constructor(
     private map: MapLibreMap,
-    private onPick: (props: MapFeatureProps) => void
+    private onPick: (props: MapFeatureProps) => void,
+    private onEmpty: () => void
   ) {}
 
   /** Add the source and layers; again after a basemap change dropped them. */
@@ -184,27 +185,16 @@ export class MapLayers {
   }
 
   attachInteraction(): void {
-    const map = this.map;
-    const hit = (point: { x: number; y: number }): MapGeoJSONFeature[] =>
-      map.getSource(SOURCE)
-        ? map.queryRenderedFeatures(
-            [
-              [point.x - PICK_RADIUS_PX, point.y - PICK_RADIUS_PX],
-              [point.x + PICK_RADIUS_PX, point.y + PICK_RADIUS_PX],
-            ],
-            { layers: PICK_LAYERS }
-          )
-        : [];
-    map.on('mousemove', (e) => {
-      map.getCanvas().style.cursor = hit(e.point).length > 0 ? 'pointer' : '';
-    });
-    map.on('click', (e) => {
-      const found = hit(e.point);
-      const top =
-        found.find((f) => f.layer.id === STOPS_LAYER) ?? found[0] ?? null;
-      if (top) {
-        this.onPick(top.properties as MapFeatureProps);
-      }
+    onMapClick(this.map, {
+      layers: PICK_LAYERS,
+      radiusPx: PICK_RADIUS_PX,
+      onFeature: (found) => {
+        const top = found.find((f) => f.layer.id === STOPS_LAYER) ?? found[0];
+        if (top) {
+          this.onPick(top.properties as MapFeatureProps);
+        }
+      },
+      onEmpty: () => this.onEmpty(),
     });
   }
 

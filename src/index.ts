@@ -77,7 +77,7 @@ const mapCtrl = new MapController((props) => {
       navigate({ type: 'trip', trip_id: props.id });
       break;
   }
-});
+}, goUp);
 try {
   mapCtrl.initialize('map');
 } catch (e) {
@@ -234,6 +234,15 @@ function setSources(next: Sources): void {
 
 function navigate(state: PageState): void {
   pages.setPageState(state);
+}
+
+/** Go to the parent crumb of the current page; no-op on home. */
+function goUp(): void {
+  const crumbs = crumbsFor(context(), pages.getPageState());
+  const parent = crumbs.at(-2);
+  if (parent) {
+    navigate(parent.pageState);
+  }
 }
 
 function openHelp(page?: string): void {
