@@ -203,6 +203,9 @@ export const en = {
   'help.map.shapeSwap': 'Shape added or removed',
   'help.map.shapeSwapText':
     'When a trip gains a shape, its old stop list is drawn in red as straight lines between its stops; when it loses one, its new stop list is drawn in green.',
+  'help.map.noShape': 'Trips without a shape',
+  'help.map.noShapeText':
+    'A trip with no shape, or a shape with under two points, is drawn as straight lines between its stops.',
   'help.map.toggle': 'A / Both / B',
   'help.map.sideA': 'A',
   'help.map.sideAText':

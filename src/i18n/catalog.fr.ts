@@ -211,6 +211,9 @@ export const fr: Translation<typeof en> = {
   'help.map.shapeSwap': 'Tracé ajouté ou supprimé',
   'help.map.shapeSwapText':
     "Quand un trajet gagne un tracé, son ancienne liste d'arrêts est dessinée en rouge, en segments droits entre ses arrêts ; quand il en perd un, sa nouvelle liste d'arrêts est dessinée en vert.",
+  'help.map.noShape': 'Trajets sans tracé',
+  'help.map.noShapeText':
+    'Un trajet sans tracé, ou dont le tracé a moins de deux points, est dessiné en segments droits entre ses arrêts.',
   'help.map.toggle': 'A / Les deux / B',
   'help.map.sideA': 'A',
   'help.map.sideAText':

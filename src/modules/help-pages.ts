@@ -161,6 +161,7 @@ const mapPage: HelpPage = {
         ['moved', ICON_MOVED],
         ['merged', ICON_MERGED],
         ['shapeSwap', ICON_MAP],
+        ['noShape', ICON_MAP],
       ]),
       subhead('help.map.toggle'),
       items('map', [

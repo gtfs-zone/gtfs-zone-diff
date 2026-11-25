@@ -209,6 +209,9 @@ export const de: Translation<typeof en> = {
   'help.map.shapeSwap': 'Linienverlauf hinzugefügt oder entfernt',
   'help.map.shapeSwapText':
     'Erhält eine Fahrt einen Linienverlauf, wird ihre alte Haltestellenfolge rot als gerade Linien zwischen den Haltestellen gezeichnet; verliert sie einen, wird ihre neue Haltestellenfolge grün gezeichnet.',
+  'help.map.noShape': 'Fahrten ohne Linienverlauf',
+  'help.map.noShapeText':
+    'Eine Fahrt ohne Linienverlauf, oder mit einem Linienverlauf unter zwei Punkten, wird als gerade Linien zwischen ihren Haltestellen gezeichnet.',
   'help.map.toggle': 'A / Beide / B',
   'help.map.sideA': 'A',
   'help.map.sideAText':
