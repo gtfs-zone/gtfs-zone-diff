@@ -158,6 +158,9 @@ class Builder {
 }
 
 export class GeometryReader {
+  /** Whether a shape has points, by `side:shape_id`. */
+  private shapeDrawn = new Map<string, boolean>();
+
   constructor(
     private pair: FeedPair,
     private renames: Renames,
@@ -407,6 +410,21 @@ export class GeometryReader {
     return pts;
   }
 
+  /** The trip's shape_id when that shape has points on `s`, else null. */
+  private drawnShape(s: SideData, trip: Row | null): string | null {
+    const id = trip?.shape_id;
+    if (!id) {
+      return null;
+    }
+    const key = `${s === this.pair.a ? 'a' : 'b'}:${id}`;
+    let drawn = this.shapeDrawn.get(key);
+    if (drawn === undefined) {
+      drawn = s.store.shapeCoords(id).length >= 4;
+      this.shapeDrawn.set(key, drawn);
+    }
+    return drawn ? id : null;
+  }
+
   /**
    * The B trip id when `tripId` on `side` has no shape and its trip on the
    * other side has one, else null.
@@ -418,8 +436,12 @@ export class GeometryReader {
     if (!ra || !rb) {
       return null;
     }
-    const [own, other] = side === 'a' ? [ra, rb] : [rb, ra];
-    return !own.shape_id && other.shape_id ? ids.b : null;
+    const own = this.drawnShape(this.pair[side], side === 'a' ? ra : rb);
+    const other =
+      side === 'a'
+        ? this.drawnShape(this.pair.b, rb)
+        : this.drawnShape(this.pair.a, ra);
+    return own === null && other !== null ? ids.b : null;
   }
 
   /** A's stop ids as B names them, for comparing stop lists. */
@@ -439,8 +461,8 @@ export class GeometryReader {
       tripId === null ? [] : s.store.tripStops(tripId).map((x) => x.stop_id);
     const sa = stopsOf(a, ids.a);
     const sb = stopsOf(b, ids.b);
-    const shapeA = ra?.shape_id || null;
-    const shapeB = rb?.shape_id || null;
+    const shapeA = this.drawnShape(a, ra);
+    const shapeB = this.drawnShape(b, rb);
     if (shapeA || shapeB) {
       const pairsUp =
         shapeA !== null &&
@@ -510,15 +532,16 @@ export class GeometryReader {
         return { shapes, lists: [], stops };
       }
       for (const { row } of s.store.find('trips', 'route_id', routeId)) {
-        if (row.shape_id) {
-          shapes.add(row.shape_id);
+        const shapeId = this.drawnShape(s, row);
+        if (shapeId) {
+          shapes.add(shapeId);
         }
         const key = s.store.stopListKey(row.trip_id);
         if (key === null) {
           continue;
         }
         // A trip with a shape is drawn by its shape.
-        if (!row.shape_id) {
+        if (!shapeId) {
           let list = lists.get(key);
           if (!list) {
             list = {
@@ -530,7 +553,7 @@ export class GeometryReader {
           }
           list.swap ??= this.shapeSwap(side, row.trip_id);
         }
-        const listKey = `${key}:${row.shape_id ? 's' : ''}`;
+        const listKey = `${key}:${shapeId ? 's' : ''}`;
         if (seen.has(listKey)) {
           continue;
         }
