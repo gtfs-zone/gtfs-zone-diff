@@ -21,8 +21,8 @@ export const en = {
   'home.clear': 'Clear',
   'home.swap': 'Swap A and B',
   'home.uploaded': 'Uploaded file',
-  'home.uploadNotLinked':
-    'Uploaded files cannot be put in a link: a link to this page carries only the URL and catalog feeds.',
+  'home.uploadLocal':
+    'Uploaded files are stored in this browser only: a link to this page reopens them here, but not on another device.',
   'home.yourFeedsNote':
     'Your feeds lists feeds stored by diff.gtfs.zone in this browser. Feeds from the editor or the viewer are stored separately: export or link them to compare them here.',
 
@@ -34,6 +34,11 @@ export const en = {
 
   'source.notInCatalog': 'The feed catalog has no schedule for this id.',
   'source.catalogFailed': 'The feed catalog could not be loaded: {reason}',
+  'source.uploadMissing':
+    'This uploaded file is not stored in this browser. Upload it again.',
+  'source.storeFailed':
+    'Feed {side} loaded, but could not be stored in this browser, so it is left out of the link and parsed again next time: {reason}',
+  'source.storeQuota': 'browser storage is full',
 
   'picker.missingNotice':
     'Feed {side} in this link could not be found: {reason}',

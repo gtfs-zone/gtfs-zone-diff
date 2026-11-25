@@ -28,11 +28,8 @@ import { MapController } from './map-controller';
 import { HELP_PAGES } from './modules/help-pages';
 import { DOCK_ICONS, NAVBAR_ACTIONS } from './modules/navbar-action-list';
 import { createPageStateManager } from './modules/page-state';
-import {
-  CompareFailedError,
-  compareInput,
-  DiffSession,
-} from './modules/diff-client';
+import { CompareFailedError, DiffSession } from './modules/diff-client';
+import { compareInput, parseCache, recordSides } from './modules/feed-cache';
 import {
   PROGRESS_ID,
   renderProgress,
@@ -50,9 +47,11 @@ import { pickSource } from './modules/source-picker';
 import {
   paramsToSources,
   sourcesToParams,
+  SIDES,
   type Side,
   type Sources,
 } from './modules/sources';
+import type { SideStored } from './engine/types';
 import type { PageLocation, PageState } from './types/page-state';
 
 // --- Shell -------------------------------------------------------------------
@@ -210,20 +209,30 @@ function startCompare(force = false): void {
     setCompareState({ status: 'idle' }, false);
     return;
   }
-  const own = new DiffSession(a, b, {}, (progress) => {
-    if (session !== own || compareState.status !== 'running') {
-      return;
+  const own = new DiffSession(
+    a,
+    b,
+    {},
+    (progress) => {
+      if (session !== own || compareState.status !== 'running') {
+        return;
+      }
+      const started = stampStep(compareState.started, progress);
+      compareState = { status: 'running', progress, started };
+      // Patch the steps in place when shown; the rest of the page is unchanged.
+      const box = document.getElementById(PROGRESS_ID);
+      if (box) {
+        box.innerHTML = renderProgress(progress, started);
+      } else {
+        refresh();
+      }
+    },
+    (stored) => {
+      if (session === own) {
+        void keepStored(stored);
+      }
     }
-    const started = stampStep(compareState.started, progress);
-    compareState = { status: 'running', progress, started };
-    // Patch the steps in place when shown; the rest of the page is unchanged.
-    const box = document.getElementById(PROGRESS_ID);
-    if (box) {
-      box.innerHTML = renderProgress(progress, started);
-    } else {
-      refresh();
-    }
-  });
+  );
   session = own;
   setCompareState(
     { status: 'running', progress: null, started: stampStep({}, null) },
@@ -241,6 +250,12 @@ function startCompare(force = false): void {
       }
       console.error('[compare] failed', err);
       own.release();
+      // A stored upload that cannot be restored cannot be parsed again.
+      const side = err instanceof CompareFailedError ? err.side : null;
+      const src = side ? compared[side] : null;
+      if (src?.kind === 'upload') {
+        void parseCache.delete(src.id);
+      }
       setCompareState({
         status: 'failed',
         side: err instanceof CompareFailedError ? err.side : null,
@@ -248,6 +263,49 @@ function startCompare(force = false): void {
       });
     }
   );
+}
+
+/**
+ * Record the stored sides in "Your feeds". An uploaded file that is now
+ * stored becomes an `upload` source, which the hash can carry.
+ */
+async function keepStored(stored: Record<Side, SideStored>): Promise<void> {
+  const ran = compared;
+  const ids = await recordSides(ran, stored);
+  for (const side of SIDES) {
+    const err = stored[side].error;
+    if (err) {
+      notify.warning(
+        t('source.storeFailed', {
+          side: side.toUpperCase(),
+          reason: err.quota ? t('source.storeQuota') : err.message,
+        })
+      );
+    }
+  }
+  if (compared !== ran) {
+    return;
+  }
+  let changed = false;
+  const next = { ...sources };
+  for (const side of SIDES) {
+    const src = ran[side];
+    const id = ids[side];
+    if (src?.kind === 'file' && id && sources[side] === src) {
+      next[side] = { kind: 'upload', id, label: src.label };
+      changed = true;
+    }
+  }
+  if (!changed) {
+    return;
+  }
+  // The same feeds, now named by id: no new comparison, and the hash entry
+  // is replaced, not pushed.
+  sources = next;
+  compared = { ...next };
+  pages.setFeedParams(sourcesToParams(sources), false);
+  pages.rewrite((state) => state);
+  refresh();
 }
 
 /** Stop the running comparison; its sources stay until compared again. */
@@ -308,7 +366,7 @@ function sourcesChangedInHash(): boolean {
   );
 }
 
-// A hand-edited address bar can name other feeds; uploads are dropped then.
+// A hand-edited address bar or Back/Forward can name other feeds.
 window.addEventListener('hashchange', () => {
   if (!sourcesChangedInHash()) {
     return;

@@ -25,13 +25,7 @@ import {
   issueText,
   statusBadge,
 } from './result-text';
-import {
-  isLinkable,
-  SIDES,
-  type Side,
-  type Source,
-  type Sources,
-} from './sources';
+import { SIDES, type Side, type Source, type Sources } from './sources';
 
 function sourceCard(side: Side, src: Source | null): string {
   const title = t(side === 'a' ? 'home.sideA' : 'home.sideB');
@@ -40,11 +34,11 @@ function sourceCard(side: Side, src: Source | null): string {
     body = `<p class="text-sm opacity-70">${t('home.noSource')}</p>`;
   } else if (src.kind === 'missing') {
     body = `
-      <p class="text-sm font-semibold break-all">${escapeHtml(src.feedId)}</p>
+      <p class="text-sm font-semibold break-all">${escapeHtml(src.name)}</p>
       <p class="text-sm text-error">${escapeHtml(src.reason)}</p>`;
   } else {
     const detail =
-      src.kind === 'file'
+      src.kind === 'file' || src.kind === 'upload'
         ? t('home.uploaded')
         : `<span class="break-all">${escapeHtml(src.url)}</span>`;
     body = `
@@ -78,8 +72,10 @@ function sourcesBody(sources: Sources): string {
       ? `<button class="btn btn-sm btn-ghost" data-action="swap">${t('home.swap')}</button>`
       : '';
   const notes: string[] = [];
-  if (SIDES.some((side) => sources[side] && !isLinkable(sources[side]))) {
-    notes.push(t('home.uploadNotLinked'));
+  const uploaded = (side: Side): boolean =>
+    sources[side]?.kind === 'file' || sources[side]?.kind === 'upload';
+  if (SIDES.some(uploaded)) {
+    notes.push(t('home.uploadLocal'));
   }
   notes.push(t('home.yourFeedsNote'));
   return `

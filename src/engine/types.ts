@@ -31,8 +31,49 @@ export interface CompareOptions {
   coordToleranceM?: number;
 }
 
-/** Where one side comes from: a resolved URL (proxy included) or a file. */
-export type CompareInput = { url: string } | { file: File };
+/** What a stored side keeps beside its base file. */
+export interface SideExtra {
+  /** Zip entries as [name, crc32, uncompressedSize]; null when not read. */
+  zip: [string, number, number][] | null;
+  /** When the side was first loaded, ISO 8601. */
+  loadedAt: string;
+}
+
+/** A stored base and what it needs to stand in for a parse. */
+export interface StoredBase {
+  base: string;
+  extra: SideExtra;
+}
+
+/**
+ * Where one side comes from: a resolved URL (proxy included), a file, or a
+ * stored base. A URL is restored from `reuse` when the server's ETag or
+ * Last-Modified still match; a file is restored from `reuse` outright. A
+ * parsed side is saved as `saveAs`.
+ */
+export type CompareInput = { saveAs: string } & (
+  | {
+      url: string;
+      reuse?: StoredBase & { lastModified: string | null; etag: string | null };
+    }
+  | { file: File; reuse?: StoredBase }
+  | { stored: StoredBase }
+);
+
+/** How one side was kept, reported once the comparison is done. */
+export interface SideStored {
+  /** The base file now holding the side, or null when it was not stored. */
+  base: string | null;
+  /** Restored from `base` rather than parsed and saved. */
+  restored: boolean;
+  bytes: number;
+  /** The URL response's validators; null for a file or a stored base. */
+  validators: { lastModified: string | null; etag: string | null } | null;
+  counts: { routes: number; stops: number; trips: number };
+  extra: SideExtra;
+  /** Why saving failed, or null; `quota` when storage is full. */
+  error: { message: string; quota: boolean } | null;
+}
 
 export type Stage = 'load' | 'files' | 'renames' | 'rows' | 'groups';
 

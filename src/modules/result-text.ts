@@ -167,7 +167,7 @@ export function groupCount(g: Group): string {
 /** "A vs B", or the generic name until both sides are set. */
 export function comparisonLabel(sources: Sources): string {
   const name = (src: Source | null): string | null =>
-    !src ? null : src.kind === 'missing' ? src.feedId : src.label;
+    !src ? null : src.kind === 'missing' ? src.name : src.label;
   const a = name(sources.a);
   const b = name(sources.b);
   return a && b ? t('home.versus', { a, b }) : t('home.newComparison');

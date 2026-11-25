@@ -1,24 +1,29 @@
 /** Opens the shared load modal for one side and turns its result into a source. */
 
-import { ParseCache } from 'gtfs-zone-web-common/gtfs/parse-cache';
 import { showLoadModal } from 'gtfs-zone-web-common/ui/load-modal';
-import { CONFIG } from '../config';
 import { t } from '../i18n/messages';
+import { parseCache } from './feed-cache';
 import {
   selectionToSource,
   sourceToSelection,
+  uploadSource,
   type Side,
   type Source,
 } from './sources';
 
-const parseCache = new ParseCache(CONFIG.PARSE_CACHE_APP);
-
-/** The stored entry as a URL source, or null when it is gone. */
+/**
+ * A stored entry as a source: an upload by its id, a URL feed as its URL
+ * (restored by the worker while the server still has that version). Null
+ * when the entry is gone.
+ */
 function storedSource(id: string): Source | null {
   const entry = parseCache.get(id);
   if (!entry) {
     console.warn(`[picker] stored feed ${id} is gone`);
     return null;
+  }
+  if (entry.kind === 'upload') {
+    return uploadSource(id);
   }
   const extra = entry.extra as { useCors?: boolean } | undefined;
   return selectionToSource({
@@ -50,7 +55,7 @@ export async function pickSource(
           })
         : undefined,
     library: {
-      feeds: parseCache.offers(null),
+      feeds: parseCache.offers(current?.kind === 'upload' ? current.id : null),
       onDelete: (id) => parseCache.delete(id),
     },
   });

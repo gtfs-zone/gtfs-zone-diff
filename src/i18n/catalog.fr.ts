@@ -24,8 +24,8 @@ export const fr: Translation<typeof en> = {
   'home.clear': 'Retirer',
   'home.swap': 'Inverser A et B',
   'home.uploaded': 'Fichier importé',
-  'home.uploadNotLinked':
-    "Un fichier importé ne peut pas figurer dans un lien : qui ouvre le lien de cette page n'obtient que les flux par URL et du catalogue.",
+  'home.uploadLocal':
+    'Les fichiers importés sont enregistrés dans ce navigateur uniquement : le lien de cette page les rouvre ici, mais pas sur un autre appareil.',
   'home.yourFeedsNote':
     "Vos flux liste les flux enregistrés par diff.gtfs.zone dans ce navigateur. Ceux de l'éditeur ou du visualiseur sont enregistrés à part : exportez-les ou partagez leur lien pour les comparer ici.",
 
@@ -39,6 +39,11 @@ export const fr: Translation<typeof en> = {
     "Le catalogue de flux n'a pas d'horaires pour cet identifiant.",
   'source.catalogFailed':
     "Le catalogue de flux n'a pas pu être chargé : {reason}",
+  'source.uploadMissing':
+    "Ce fichier importé n'est pas enregistré dans ce navigateur. Importez-le à nouveau.",
+  'source.storeFailed':
+    "Le flux {side} est chargé, mais n'a pas pu être enregistré dans ce navigateur : il est absent du lien et sera de nouveau analysé la prochaine fois : {reason}",
+  'source.storeQuota': 'le stockage du navigateur est plein',
 
   'picker.missingNotice':
     'Le flux {side} de ce lien est introuvable : {reason}',

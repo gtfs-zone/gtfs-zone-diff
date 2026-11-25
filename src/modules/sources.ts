@@ -2,10 +2,11 @@
  * The two feeds being compared, and their half of the URL hash.
  *
  * Scheme: `a=<source>&b=<source>&cors=a,b`. A source is `feed:<feedId>` for a
- * catalog feed or a schedule URL. `cors` lists the URL sides fetched through
- * the CORS proxy, `none` when neither is; a missing `cors` proxies both.
- * Catalog sources always go through the proxy, as the load modal does.
- * An uploaded file has no URL and is left out of the hash.
+ * catalog feed, `upload:<id>` for an uploaded zip stored in this browser, or
+ * a schedule URL. `cors` lists the URL sides fetched through the CORS proxy,
+ * `none` when neither is; a missing `cors` proxies both. Catalog sources
+ * always go through the proxy, as the load modal does. An upload enters the
+ * hash once it is stored; until then it has no id.
  */
 
 import {
@@ -16,6 +17,7 @@ import {
 } from 'gtfs-zone-web-common/gtfs/feed-catalog';
 import type { FeedSelection } from 'gtfs-zone-web-common/gtfs/feed-selection';
 import { t } from '../i18n/messages';
+import { parseCache } from './feed-cache';
 
 export type Side = 'a' | 'b';
 
@@ -24,13 +26,21 @@ export const SIDES: readonly Side[] = ['a', 'b'];
 export type Source =
   | { kind: 'catalog'; feedId: string; url: string; label: string }
   | { kind: 'url'; url: string; useCors: boolean; label: string }
+  /** An uploaded zip, before it is stored. */
   | { kind: 'file'; file: File; label: string }
-  /** A `feed:` id the catalog does not list (or could not be loaded). */
-  | { kind: 'missing'; feedId: string; reason: string };
+  /** An uploaded zip stored in this browser, by its `ParseCache` id. */
+  | { kind: 'upload'; id: string; label: string }
+  /**
+   * A hash value that cannot be loaded: a `feed:` id the catalog does not
+   * list (or could not be loaded), or an `upload:` id this browser lacks.
+   * `param` is the value as the hash had it.
+   */
+  | { kind: 'missing'; param: string; name: string; reason: string };
 
 export type Sources = Record<Side, Source | null>;
 
 const CATALOG_PREFIX = 'feed:';
+const UPLOAD_PREFIX = 'upload:';
 
 /** The host and last path segment, as a label for a bare URL. */
 function labelForUrl(url: string): string {
@@ -51,9 +61,19 @@ function catalogSource(feed: CatalogFeed): Source | null {
   return { kind: 'catalog', feedId: feed.feedId, url, label: feed.name };
 }
 
-/** True when the source can be written to the hash. */
-export function isLinkable(src: Source | null): boolean {
-  return src?.kind === 'catalog' || src?.kind === 'url';
+/** The source of a stored upload, or `missing` when this browser lacks it. */
+export function uploadSource(id: string): Source {
+  const entry = parseCache.get(id);
+  if (entry?.kind !== 'upload') {
+    console.warn(`[sources] stored upload ${id} is not in this browser`);
+    return {
+      kind: 'missing',
+      param: UPLOAD_PREFIX + id,
+      name: entry?.label ?? id,
+      reason: t('source.uploadMissing'),
+    };
+  }
+  return { kind: 'upload', id, label: entry.label };
 }
 
 /** The hash params for both sides; empty when neither is linkable. */
@@ -63,8 +83,12 @@ export function sourcesToParams(sources: Sources): Record<string, string> {
   let anyUrl = false;
   for (const side of SIDES) {
     const src = sources[side];
-    if (src?.kind === 'catalog' || src?.kind === 'missing') {
+    if (src?.kind === 'catalog') {
       params[side] = CATALOG_PREFIX + src.feedId;
+    } else if (src?.kind === 'upload') {
+      params[side] = UPLOAD_PREFIX + src.id;
+    } else if (src?.kind === 'missing') {
+      params[side] = src.param;
     } else if (src?.kind === 'url') {
       params[side] = src.url;
       anyUrl = true;
@@ -95,6 +119,9 @@ export async function paramsToSources(hash: string): Promise<Sources> {
     if (!value) {
       return null;
     }
+    if (value.startsWith(UPLOAD_PREFIX)) {
+      return uploadSource(value.slice(UPLOAD_PREFIX.length));
+    }
     if (!value.startsWith(CATALOG_PREFIX)) {
       return {
         kind: 'url',
@@ -112,7 +139,8 @@ export async function paramsToSources(hash: string): Promise<Sources> {
       console.warn(`[sources] catalog unavailable for ${feedId}:`, err);
       return {
         kind: 'missing',
-        feedId,
+        param: value,
+        name: feedId,
         reason: t('source.catalogFailed', { reason }),
       };
     }
@@ -120,7 +148,12 @@ export async function paramsToSources(hash: string): Promise<Sources> {
     const src = feed ? catalogSource(feed) : null;
     if (!src) {
       console.warn(`[sources] no schedule in the catalog for ${feedId}`);
-      return { kind: 'missing', feedId, reason: t('source.notInCatalog') };
+      return {
+        kind: 'missing',
+        param: value,
+        name: feedId,
+        reason: t('source.notInCatalog'),
+      };
     }
     return src;
   };
@@ -158,7 +191,7 @@ export function selectionToSource(sel: FeedSelection): Source | null {
 
 /** The selection the load modal opens seeded with for this source. */
 export function sourceToSelection(src: Source | null): FeedSelection | null {
-  if (!src || src.kind === 'missing') {
+  if (!src || src.kind === 'missing' || src.kind === 'upload') {
     return null;
   }
   if (src.kind === 'file') {

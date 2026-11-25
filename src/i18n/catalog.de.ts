@@ -24,8 +24,8 @@ export const de: Translation<typeof en> = {
   'home.clear': 'Entfernen',
   'home.swap': 'A und B tauschen',
   'home.uploaded': 'Hochgeladene Datei',
-  'home.uploadNotLinked':
-    'Hochgeladene Dateien können nicht in einen Link: Wer den Link dieser Seite öffnet, bekommt nur die Feeds per URL und aus dem Katalog.',
+  'home.uploadLocal':
+    'Hochgeladene Dateien werden nur in diesem Browser gespeichert: Der Link dieser Seite öffnet sie hier wieder, aber nicht auf einem anderen Gerät.',
   'home.yourFeedsNote':
     'Ihre Feeds zeigt die Feeds, die diff.gtfs.zone in diesem Browser gespeichert hat. Feeds aus dem Editor oder dem Viewer werden getrennt gespeichert: Exportieren oder verlinken Sie sie, um sie hier zu vergleichen.',
 
@@ -38,6 +38,11 @@ export const de: Translation<typeof en> = {
   'source.notInCatalog': 'Der Feed-Katalog hat keinen Fahrplan zu dieser ID.',
   'source.catalogFailed':
     'Der Feed-Katalog konnte nicht geladen werden: {reason}',
+  'source.uploadMissing':
+    'Diese hochgeladene Datei ist nicht in diesem Browser gespeichert. Laden Sie sie erneut hoch.',
+  'source.storeFailed':
+    'Feed {side} wurde geladen, konnte aber nicht in diesem Browser gespeichert werden; er fehlt daher im Link und wird beim nächsten Mal erneut eingelesen: {reason}',
+  'source.storeQuota': 'der Browserspeicher ist voll',
 
   'picker.missingNotice':
     'Feed {side} aus diesem Link wurde nicht gefunden: {reason}',
