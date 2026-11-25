@@ -3,7 +3,7 @@
  * feed_info row, read from the worker and shown on both sides.
  */
 
-import { entityRow } from 'gtfs-zone-web-common/gtfs/entity-row';
+import { entityRow, entityRowList } from 'gtfs-zone-web-common/gtfs/entity-row';
 import {
   listSection,
   type TreePage,
@@ -19,10 +19,11 @@ import type {
 import { t } from '../i18n/messages';
 import type { PageLocation } from '../types/page-state';
 import { appLinkButtons, type LinkFocus } from './app-links';
+import { itemRow } from './group-page';
 import { doneResult, waitingPage, type PageContext } from './page-context';
 import { SIDES } from './sources';
 import { entityStatusBadge, recordTable, stopTimesTable } from './record-view';
-import { fileTitle, fmt } from './result-text';
+import { fileTitle, fmt, groupLabel } from './result-text';
 
 type EntityLocation = Extract<PageLocation, { type: PageEntity }>;
 
@@ -206,6 +207,10 @@ function sections(ctx: PageContext, v: EntityView): TreeSection[] {
       body: `<p class="text-xs">${escapeHtml(pairLine(v.tripCount.a, v.tripCount.b))}</p>`,
     });
   }
+  const merge = stopMergeSection(ctx, v);
+  if (merge) {
+    out.push(merge);
+  }
   if (v.stopTimes) {
     out.push({
       title: fileTitle('stop_times.txt'),
@@ -221,6 +226,29 @@ function sections(ctx: PageContext, v: EntityView): TreeSection[] {
     out.push(links);
   }
   return out;
+}
+
+/** The merge or split a stop takes part in, linking to its group. */
+function stopMergeSection(ctx: PageContext, v: EntityView): TreeSection | null {
+  const group = v.stopMerge
+    ? doneResult(ctx)?.result.groups.find((g) => g.id === v.stopMerge!.group)
+    : undefined;
+  if (!v.stopMerge || !group) {
+    return null;
+  }
+  const row = itemRow(group, v.stopMerge.item);
+  return {
+    title: groupLabel(group),
+    body: entityRowList(
+      [
+        entityRow<PageLocation>(ctx, {
+          ...row,
+          state: { type: 'group', group: group.id },
+        }),
+      ],
+      ''
+    ),
+  };
 }
 
 /** Each side's links into the editor and the visualizer, on its own id. */

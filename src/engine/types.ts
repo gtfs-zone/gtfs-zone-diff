@@ -31,8 +31,49 @@ export interface CompareOptions {
   coordToleranceM?: number;
 }
 
-/** Where one side comes from: a resolved URL (proxy included) or a file. */
-export type CompareInput = { url: string } | { file: File };
+/** What a stored side keeps beside its base file. */
+export interface SideExtra {
+  /** Zip entries as [name, crc32, uncompressedSize]; null when not read. */
+  zip: [string, number, number][] | null;
+  /** When the side was first loaded, ISO 8601. */
+  loadedAt: string;
+}
+
+/** A stored base and what it needs to stand in for a parse. */
+export interface StoredBase {
+  base: string;
+  extra: SideExtra;
+}
+
+/**
+ * Where one side comes from: a resolved URL (proxy included), a file, or a
+ * stored base. A URL is restored from `reuse` when the server's ETag or
+ * Last-Modified still match; a file is restored from `reuse` outright. A
+ * parsed side is saved as `saveAs`.
+ */
+export type CompareInput = { saveAs: string } & (
+  | {
+      url: string;
+      reuse?: StoredBase & { lastModified: string | null; etag: string | null };
+    }
+  | { file: File; reuse?: StoredBase }
+  | { stored: StoredBase }
+);
+
+/** How one side was kept, reported once the comparison is done. */
+export interface SideStored {
+  /** The base file now holding the side, or null when it was not stored. */
+  base: string | null;
+  /** Restored from `base` rather than parsed and saved. */
+  restored: boolean;
+  bytes: number;
+  /** The URL response's validators; null for a file or a stored base. */
+  validators: { lastModified: string | null; etag: string | null } | null;
+  counts: { routes: number; stops: number; trips: number };
+  extra: SideExtra;
+  /** Why saving failed, or null; `quota` when storage is full. */
+  error: { message: string; quota: boolean } | null;
+}
 
 export type Stage = 'load' | 'files' | 'renames' | 'rows' | 'groups';
 
@@ -138,6 +179,9 @@ export type GroupKind =
   | 'stopTimesTimes'
   | 'tripCount'
   | 'stopMoved'
+  | 'stopMerged'
+  | 'stopSplit'
+  | 'stopMergeSuggestion'
   | 'shapeChanged';
 
 /** One smart group: a label, a count, and the files its rows live in. */
@@ -202,6 +246,31 @@ export type GroupItem =
       b: number;
     }
   | { kind: 'stopMoved'; a: string; b: string; metres: number }
+  | {
+      kind: 'stopMerged';
+      /** Removed A stops, and each one's distance to the B stop. */
+      a: string[];
+      metres: number[];
+      /** The added B stop they gave way to. */
+      b: string;
+      /** Paired trips that show the change. */
+      trips: number;
+      /** The weakest A stop's share of its votes going to `b`, 0 to 1. */
+      share: number;
+    }
+  | {
+      kind: 'stopSplit';
+      /** The removed A stop. */
+      a: string;
+      /** Added B stops it gave way to, and each one's distance to it. */
+      b: string[];
+      metres: number[];
+      trips: number;
+      /** The weakest B stop's share of its votes coming from `a`, 0 to 1. */
+      share: number;
+      /** The parent_station every B stop shares, when they are its platforms. */
+      station: string | null;
+    }
   | {
       kind: 'shapeChanged';
       a: string;
@@ -330,12 +399,17 @@ export interface EntityView {
   shape?: { pointsA: number; pointsB: number; metres: number | null };
   /** Trips using a service or shape, per side. */
   tripCount?: { a: number; b: number };
+  /** The stop merge or split the stop takes part in, and its group. */
+  stopMerge?: {
+    group: string;
+    item: Extract<GroupItem, { kind: 'stopMerged' | 'stopSplit' }>;
+  };
   crumbs: CrumbLabels;
 }
 
 /** What the map shows: the changes overview (one layer of it), or one page. */
 export type MapScope =
-  | { type: 'overview'; layer?: 'stops' | 'shapes' | 'moved' }
+  | { type: 'overview'; layer?: 'stops' | 'shapes' | 'moved' | 'merged' }
   | { type: 'stop' | 'trip' | 'route' | 'shape'; id: string };
 
 export type MapStatus = 'added' | 'removed' | 'changed' | 'unchanged';
@@ -351,6 +425,8 @@ export interface MapFeatureProps {
   id: string;
   /** The page's focus, drawn on top; false is context, drawn dimmed. */
   focus: boolean;
+  /** Drawn as a ring: a stop's A position that gave way to another. */
+  hollow?: boolean;
 }
 
 export interface MapGeometry {

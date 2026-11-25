@@ -13,6 +13,7 @@ import type { FeedPair, SideData } from './pair';
 import type { Renames } from './renames';
 import type { TableResult } from './rows';
 import type { ShapesResult } from './shapes';
+import type { StopMerges } from './stop-merges';
 import type {
   EntityStatus,
   MapFeatureProps,
@@ -158,18 +159,26 @@ class Builder {
 }
 
 export class GeometryReader {
+  /** Whether a shape has points, by `side:shape_id`. */
+  private shapeDrawn = new Map<string, boolean>();
+
   constructor(
     private pair: FeedPair,
     private renames: Renames,
     private reader: EntityReader,
     private stops: TableResult | null,
-    private shapes: ShapesResult | null
+    private shapes: ShapesResult | null,
+    private merges: StopMerges
   ) {}
 
   read(scope: MapScope): MapGeometry {
     const out = new Builder();
     switch (scope.type) {
       case 'overview':
+        if (scope.layer === 'merged') {
+          this.overviewMerges(out);
+          break;
+        }
         if (scope.layer !== 'shapes') {
           this.overviewStops(out, scope.layer === 'moved');
         }
@@ -306,6 +315,62 @@ export class GeometryReader {
     }
   }
 
+  /**
+   * Merged and split stops: each A stop hollow red, each B stop green, and a
+   * dashed line from every A stop to the B stop it gave way to.
+   */
+  private overviewMerges(out: Builder): void {
+    const { a, b } = this.pair;
+    const pairs: [string, string][] = [];
+    for (const item of [
+      ...this.merges.merged,
+      ...this.merges.split,
+      ...this.merges.suggestions,
+    ]) {
+      if (item.kind === 'stopMerged') {
+        pairs.push(...item.a.map((x): [string, string] => [x, item.b]));
+      } else {
+        pairs.push(...item.b.map((y): [string, string] => [item.a, y]));
+      }
+    }
+    const drawnA = new Set<string>();
+    const drawnB = new Set<string>();
+    for (const [x, y] of pairs) {
+      const pa = position(this.stopRow(a, x));
+      const pb = position(this.stopRow(b, y));
+      if (pa && pb) {
+        out.line([pa, pb], {
+          kind: 'move',
+          status: 'changed',
+          side: 'both',
+          page: 'stop',
+          id: y,
+        });
+      }
+      if (pa && !drawnA.has(x)) {
+        drawnA.add(x);
+        out.point(pa, {
+          kind: 'stop',
+          status: 'removed',
+          side: 'a',
+          page: 'stop',
+          id: x,
+          hollow: true,
+        });
+      }
+      if (pb && !drawnB.has(y)) {
+        drawnB.add(y);
+        out.point(pb, {
+          kind: 'stop',
+          status: 'added',
+          side: 'b',
+          page: 'stop',
+          id: y,
+        });
+      }
+    }
+  }
+
   private overviewShapes(out: Builder): void {
     for (const c of this.shapes?.shapes ?? []) {
       if (c.kind === 'added' || c.kind === 'removed' || c.kind === 'changed') {
@@ -407,6 +472,21 @@ export class GeometryReader {
     return pts;
   }
 
+  /** The trip's shape_id when that shape has points on `s`, else null. */
+  private drawnShape(s: SideData, trip: Row | null): string | null {
+    const id = trip?.shape_id;
+    if (!id) {
+      return null;
+    }
+    const key = `${s === this.pair.a ? 'a' : 'b'}:${id}`;
+    let drawn = this.shapeDrawn.get(key);
+    if (drawn === undefined) {
+      drawn = s.store.shapeCoords(id).length >= 4;
+      this.shapeDrawn.set(key, drawn);
+    }
+    return drawn ? id : null;
+  }
+
   /**
    * The B trip id when `tripId` on `side` has no shape and its trip on the
    * other side has one, else null.
@@ -418,8 +498,12 @@ export class GeometryReader {
     if (!ra || !rb) {
       return null;
     }
-    const [own, other] = side === 'a' ? [ra, rb] : [rb, ra];
-    return !own.shape_id && other.shape_id ? ids.b : null;
+    const own = this.drawnShape(this.pair[side], side === 'a' ? ra : rb);
+    const other =
+      side === 'a'
+        ? this.drawnShape(this.pair.b, rb)
+        : this.drawnShape(this.pair.a, ra);
+    return own === null && other !== null ? ids.b : null;
   }
 
   /** A's stop ids as B names them, for comparing stop lists. */
@@ -439,8 +523,8 @@ export class GeometryReader {
       tripId === null ? [] : s.store.tripStops(tripId).map((x) => x.stop_id);
     const sa = stopsOf(a, ids.a);
     const sb = stopsOf(b, ids.b);
-    const shapeA = ra?.shape_id || null;
-    const shapeB = rb?.shape_id || null;
+    const shapeA = this.drawnShape(a, ra);
+    const shapeB = this.drawnShape(b, rb);
     if (shapeA || shapeB) {
       const pairsUp =
         shapeA !== null &&
@@ -510,15 +594,16 @@ export class GeometryReader {
         return { shapes, lists: [], stops };
       }
       for (const { row } of s.store.find('trips', 'route_id', routeId)) {
-        if (row.shape_id) {
-          shapes.add(row.shape_id);
+        const shapeId = this.drawnShape(s, row);
+        if (shapeId) {
+          shapes.add(shapeId);
         }
         const key = s.store.stopListKey(row.trip_id);
         if (key === null) {
           continue;
         }
         // A trip with a shape is drawn by its shape.
-        if (!row.shape_id) {
+        if (!shapeId) {
           let list = lists.get(key);
           if (!list) {
             list = {
@@ -530,7 +615,7 @@ export class GeometryReader {
           }
           list.swap ??= this.shapeSwap(side, row.trip_id);
         }
-        const listKey = `${key}:${row.shape_id ? 's' : ''}`;
+        const listKey = `${key}:${shapeId ? 's' : ''}`;
         if (seen.has(listKey)) {
           continue;
         }

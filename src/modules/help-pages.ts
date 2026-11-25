@@ -36,6 +36,9 @@ const ICON_FILE = helpIcon(
 const ICON_MOVED = helpIcon(
   '<circle cx="7" cy="25" r="2.5"/><circle cx="25" cy="7" r="2.5"/><path d="M9 23l14-14" stroke-dasharray="2.5 2.5"/>'
 );
+const ICON_MERGED = helpIcon(
+  '<circle cx="7" cy="7" r="2.5"/><circle cx="7" cy="25" r="2.5"/><circle cx="25" cy="16" r="2.5"/><path d="M9 9l13 6M9 23l13-6" stroke-dasharray="2.5 2.5"/>'
+);
 const ICON_LIMIT = helpIcon('<path d="M6 9h20M6 16h20M6 23h10"/>');
 
 /** A filled dot in a map status colour. */
@@ -156,6 +159,7 @@ const mapPage: HelpPage = {
         ['changed', dot(STATUS_COLORS.changed)],
         ['unchanged', dot(STATUS_COLORS.unchanged)],
         ['moved', ICON_MOVED],
+        ['merged', ICON_MERGED],
         ['shapeSwap', ICON_MAP],
       ]),
       subhead('help.map.toggle'),

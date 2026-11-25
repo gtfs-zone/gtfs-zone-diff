@@ -24,8 +24,8 @@ export const de: Translation<typeof en> = {
   'home.clear': 'Entfernen',
   'home.swap': 'A und B tauschen',
   'home.uploaded': 'Hochgeladene Datei',
-  'home.uploadNotLinked':
-    'Hochgeladene Dateien können nicht in einen Link: Wer den Link dieser Seite öffnet, bekommt nur die Feeds per URL und aus dem Katalog.',
+  'home.uploadLocal':
+    'Hochgeladene Dateien werden nur in diesem Browser gespeichert: Der Link dieser Seite öffnet sie hier wieder, aber nicht auf einem anderen Gerät.',
   'home.yourFeedsNote':
     'Ihre Feeds zeigt die Feeds, die diff.gtfs.zone in diesem Browser gespeichert hat. Feeds aus dem Editor oder dem Viewer werden getrennt gespeichert: Exportieren oder verlinken Sie sie, um sie hier zu vergleichen.',
 
@@ -38,6 +38,11 @@ export const de: Translation<typeof en> = {
   'source.notInCatalog': 'Der Feed-Katalog hat keinen Fahrplan zu dieser ID.',
   'source.catalogFailed':
     'Der Feed-Katalog konnte nicht geladen werden: {reason}',
+  'source.uploadMissing':
+    'Diese hochgeladene Datei ist nicht in diesem Browser gespeichert. Laden Sie sie erneut hoch.',
+  'source.storeFailed':
+    'Feed {side} wurde geladen, konnte aber nicht in diesem Browser gespeichert werden; er fehlt daher im Link und wird beim nächsten Mal erneut eingelesen: {reason}',
+  'source.storeQuota': 'der Browserspeicher ist voll',
 
   'picker.missingNotice':
     'Feed {side} aus diesem Link wurde nicht gefunden: {reason}',
@@ -94,6 +99,10 @@ export const de: Translation<typeof en> = {
   'results.group.stopTimesTimes': 'Fahrten mit geänderten Zeiten',
   'results.group.tripCount': 'Linien mit anderer Fahrtenzahl',
   'results.group.stopMoved': 'Verschobene Haltestellen',
+  'results.group.stopMerged': 'Zusammengelegte Haltestellen',
+  'results.group.stopSplit': 'Aufgeteilte Haltestellen',
+  'results.group.stopMergeSuggestion':
+    'Mögliche Zusammenlegungen und Aufteilungen',
   'results.group.shapeChanged': 'Geänderte Linienverläufe',
   'results.issues': 'Probleme in den Feeds',
   'results.issue.duplicateKeys':
@@ -194,6 +203,9 @@ export const de: Translation<typeof en> = {
   'help.map.moved': 'Verschobene Haltestellen',
   'help.map.movedText':
     'Eine gestrichelte Linie von der Lage der Haltestelle in Feed A zu ihrer Lage in Feed B.',
+  'help.map.merged': 'Zusammengelegte und aufgeteilte Haltestellen',
+  'help.map.mergedText':
+    'In A entfernte Haltestellen hohl in Rot, die sie in B ersetzenden in Grün und eine gestrichelte Linie von jeder zu ihrem Ersatz. Erkannt an Fahrten, die die neue Haltestelle dort bedienen, wo sie die alte bedienten, innerhalb von 150 m.',
   'help.map.shapeSwap': 'Linienverlauf hinzugefügt oder entfernt',
   'help.map.shapeSwapText':
     'Erhält eine Fahrt einen Linienverlauf, wird ihre alte Haltestellenfolge rot als gerade Linien zwischen den Haltestellen gezeichnet; verliert sie einen, wird ihre neue Haltestellenfolge grün gezeichnet.',
@@ -213,7 +225,7 @@ export const de: Translation<typeof en> = {
     'Der Bereich Export auf der Startseite lädt den Vergleich herunter. Beide Dateien entstehen in Ihrem Browser.',
   'help.export.v2': 'GTFS Diff v2 (JSON)',
   'help.export.v2Text':
-    'Das GTFS-Diff-Format von MobilityData: jede abweichende Zeile über ihren Schlüssel, Statistiken je Datei und Spalte und Hinweise wie umbenannte IDs, mögliche Umbenennungen, verschobene Haltestellen und geänderte Linienverläufe. Eine umbenannte Zeile erscheint als entfernt und hinzugefügt, mit einem Hinweis, der beide nennt.',
+    'Das GTFS-Diff-Format von MobilityData: jede abweichende Zeile über ihren Schlüssel, Statistiken je Datei und Spalte und Hinweise wie umbenannte IDs, mögliche Umbenennungen, verschobene, zusammengelegte und aufgeteilte Haltestellen und geänderte Linienverläufe. Eine umbenannte Zeile erscheint als entfernt und hinzugefügt, mit einem Hinweis, der beide nennt.',
   'help.export.summary': 'Zusammenfassung (Markdown)',
   'help.export.summaryText':
     'Ein kurzer Bericht in der Sprache der Seite: die Dateien mit ihren Zahlen und die gruppierten Änderungen, höchstens 20 Einträge je Gruppe.',
@@ -270,6 +282,11 @@ export const de: Translation<typeof en> = {
   'group.columns': 'Spalten: {cols}',
   'group.tripCount': 'Richtung {direction}: {a} Fahrten in A, {b} in B',
   'group.movedBy': 'um {metres} m verschoben',
+  'group.merged': '{a} zusammengelegt zu {b}',
+  'group.split': '{a} aufgeteilt in {b}',
+  'group.splitStation': '{a} aufgeteilt in {b}, Steige von {station}',
+  'group.apart': '{metres} m entfernt',
+  'group.share': '{percent} % der Fahrten stimmen überein',
   'group.shapeChanged': 'bis zu {metres} m Abstand, {a} Punkte in A, {b} in B',
   'group.unknown': 'Diese Gruppe gibt es in diesem Vergleich nicht.',
   'group.files': 'In {files}',

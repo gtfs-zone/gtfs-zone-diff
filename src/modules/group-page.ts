@@ -29,6 +29,18 @@ function tripsLine(trips: number): string {
   return t('unit.trips', { count: trips });
 }
 
+/** Distances in whole metres, as "40, 85". */
+function metresList(list: number[]): string {
+  return list.map((m) => String(Math.round(m))).join(', ');
+}
+
+/** The vote share, shown only for a suggestion. */
+function shareLine(group: Group, share: number): string {
+  return group.kind === 'stopMergeSuggestion'
+    ? t('group.share', { percent: Math.round(share * 100) })
+    : '';
+}
+
 /** One item as a row: what it names, where it goes, what changed. */
 export function itemRow(
   group: Group,
@@ -121,6 +133,36 @@ export function itemRow(
         ]
           .filter(Boolean)
           .join(', '),
+      };
+    case 'stopMerged':
+      return {
+        state: { type: 'stop', stop_id: item.b },
+        label: t('group.merged', { a: item.a.join(', '), b: item.b }),
+        sublabel: [
+          t('group.apart', { metres: metresList(item.metres) }),
+          tripsLine(item.trips),
+          shareLine(group, item.share),
+        ]
+          .filter(Boolean)
+          .join('; '),
+      };
+    case 'stopSplit':
+      return {
+        state: { type: 'stop', stop_id: item.a },
+        label: item.station
+          ? t('group.splitStation', {
+              a: item.a,
+              b: item.b.join(', '),
+              station: item.station,
+            })
+          : t('group.split', { a: item.a, b: item.b.join(', ') }),
+        sublabel: [
+          t('group.apart', { metres: metresList(item.metres) }),
+          tripsLine(item.trips),
+          shareLine(group, item.share),
+        ]
+          .filter(Boolean)
+          .join('; '),
       };
     case 'shapeChanged':
       return {

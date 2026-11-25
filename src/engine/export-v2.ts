@@ -11,6 +11,7 @@
 import { pairBySequence, type FeedPair, type SideData } from './pair';
 import type { TableResult } from './rows';
 import type { ShapesResult } from './shapes';
+import { MERGE_RADIUS_M } from './stop-merges';
 import { TripRows, type StopTimesResult } from './stop-times';
 import type {
   DiffResult,
@@ -562,6 +563,43 @@ function highlights(src: ExportSources, cap: number | null) {
             new: pb.at,
           },
         });
+      } else if (item.kind === 'stopMerged') {
+        const suggested = g.kind === 'stopMergeSuggestion';
+        push({
+          code: suggested ? 'stop_merge_suggested' : 'stop_merged',
+          message: `Stops ${item.a.join(', ')} ${suggested ? 'may be' : 'are'} merged into ${item.b} in the new feed.`,
+          files: g.files,
+          references: [
+            ...item.a.map((id) => ref('a', 'stop_id', id)),
+            ref('b', 'stop_id', item.b),
+          ],
+          details: {
+            base_ids: item.a,
+            new_id: item.b,
+            distances_m: item.metres,
+            trips: item.trips,
+            share: item.share,
+          },
+        });
+      } else if (item.kind === 'stopSplit') {
+        const suggested = g.kind === 'stopMergeSuggestion';
+        push({
+          code: suggested ? 'stop_split_suggested' : 'stop_split',
+          message: `Stop ${item.a} ${suggested ? 'may be' : 'is'} split into ${item.b.join(', ')} in the new feed.`,
+          files: g.files,
+          references: [
+            ref('a', 'stop_id', item.a),
+            ...item.b.map((id) => ref('b', 'stop_id', id)),
+          ],
+          details: {
+            base_id: item.a,
+            new_ids: item.b,
+            distances_m: item.metres,
+            trips: item.trips,
+            share: item.share,
+            parent_station: item.station,
+          },
+        });
       } else if (item.kind === 'shapeChanged' && item.metres > tolerance) {
         push({
           code: 'shape_moved',
@@ -603,7 +641,11 @@ function highlights(src: ExportSources, cap: number | null) {
   }
   return {
     cap_per_code: cap,
-    parameters: { stop_moved_m: tolerance, shape_moved_m: tolerance },
+    parameters: {
+      stop_moved_m: tolerance,
+      shape_moved_m: tolerance,
+      stop_merge_radius_m: MERGE_RADIUS_M,
+    },
     counts,
     items,
   };

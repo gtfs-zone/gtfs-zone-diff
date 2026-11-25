@@ -53,15 +53,17 @@ function sourceName(src: Source | null): string {
       return src.url;
     case 'file':
       return src.file.name;
+    case 'upload':
+      return src.label;
     case 'missing':
-      return src.feedId;
+      return src.name;
     default:
       return '';
   }
 }
 
 function slug(src: Source | null): string {
-  const name = !src ? '' : src.kind === 'missing' ? src.feedId : src.label;
+  const name = !src ? '' : src.kind === 'missing' ? src.name : src.label;
   return (
     name
       .toLowerCase()

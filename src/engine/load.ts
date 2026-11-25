@@ -1,16 +1,20 @@
 /**
  * Loads one side into a FeedStore, and reads its zip central directory from
- * the tail of the same stream, so a URL is downloaded once.
+ * the tail of the same stream, so a URL is downloaded once. A side stored
+ * earlier is restored from its base file instead, with the zip index kept
+ * beside it.
  */
 
 import { streamGtfsZip } from 'gtfs-zone-web-common/gtfs/store/csv-stream';
 import { FeedStore } from 'gtfs-zone-web-common/gtfs/store/feed-store';
+import { loadBaseFile } from 'gtfs-zone-web-common/gtfs/store/opfs-base';
 import {
   readZipIndex,
   type ZipByteReader,
   type ZipEntryInfo,
 } from 'gtfs-zone-web-common/util/zip-index';
 import type { LoadedSide } from './pair';
+import type { SideExtra, StoredBase } from './types';
 
 /** Bytes kept from the end of the archive; the central directory must fit. */
 const TAIL_BYTES = 4 << 20;
@@ -121,4 +125,41 @@ export async function loadSide(src: SideSource): Promise<LoadedSide> {
   store.finish();
   const zip = await zipIndex(src, tail);
   return { store, stream, zip, loadedAt: new Date().toISOString() };
+}
+
+/** What a loaded side keeps beside its base when stored; zip entries by table name. */
+export function sideExtra(side: LoadedSide): SideExtra {
+  return {
+    zip: side.zip
+      ? [...side.zip].map(([name, e]) => [name, e.crc32, e.uncompressedSize])
+      : null,
+    loadedAt: side.loadedAt,
+  };
+}
+
+/** A side from its stored base file. */
+export async function restoreSide(stored: StoredBase): Promise<LoadedSide> {
+  const { store, stream } = await loadBaseFile(stored.base);
+  if (store.stopTimesMode !== 'full') {
+    throw new Error(
+      `[load] ${stored.base} has stop_times as '${store.stopTimesMode}', not 'full'`
+    );
+  }
+  const zip = stored.extra.zip
+    ? new Map(
+        stored.extra.zip.map(([name, crc32, uncompressedSize]) => [
+          name,
+          {
+            name,
+            crc32,
+            uncompressedSize,
+            compressedSize: 0,
+            method: 0,
+            localHeaderOffset: 0,
+            isDirectory: false,
+          },
+        ])
+      )
+    : null;
+  return { store, stream, zip, loadedAt: stored.extra.loadedAt };
 }

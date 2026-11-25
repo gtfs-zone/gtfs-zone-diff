@@ -21,8 +21,8 @@ export const en = {
   'home.clear': 'Clear',
   'home.swap': 'Swap A and B',
   'home.uploaded': 'Uploaded file',
-  'home.uploadNotLinked':
-    'Uploaded files cannot be put in a link: a link to this page carries only the URL and catalog feeds.',
+  'home.uploadLocal':
+    'Uploaded files are stored in this browser only: a link to this page reopens them here, but not on another device.',
   'home.yourFeedsNote':
     'Your feeds lists feeds stored by diff.gtfs.zone in this browser. Feeds from the editor or the viewer are stored separately: export or link them to compare them here.',
 
@@ -34,6 +34,11 @@ export const en = {
 
   'source.notInCatalog': 'The feed catalog has no schedule for this id.',
   'source.catalogFailed': 'The feed catalog could not be loaded: {reason}',
+  'source.uploadMissing':
+    'This uploaded file is not stored in this browser. Upload it again.',
+  'source.storeFailed':
+    'Feed {side} loaded, but could not be stored in this browser, so it is left out of the link and parsed again next time: {reason}',
+  'source.storeQuota': 'browser storage is full',
 
   'picker.missingNotice':
     'Feed {side} in this link could not be found: {reason}',
@@ -89,6 +94,9 @@ export const en = {
   'results.group.stopTimesTimes': 'Trips with changed times',
   'results.group.tripCount': 'Routes with a different trip count',
   'results.group.stopMoved': 'Moved stops',
+  'results.group.stopMerged': 'Merged stops',
+  'results.group.stopSplit': 'Split stops',
+  'results.group.stopMergeSuggestion': 'Possible stop merges and splits',
   'results.group.shapeChanged': 'Changed shapes',
   'results.issues': 'Feed issues',
   'results.issue.duplicateKeys':
@@ -189,6 +197,9 @@ export const en = {
   'help.map.moved': 'Moved stops',
   'help.map.movedText':
     'A dashed line from where the stop is in feed A to where it is in feed B.',
+  'help.map.merged': 'Merged and split stops',
+  'help.map.mergedText':
+    'Stops removed from A hollow in red, the stops that replace them in B in green, and a dashed line from each to its replacement. Found from trips that serve the new stop where they served the old one, within 150 m.',
   'help.map.shapeSwap': 'Shape added or removed',
   'help.map.shapeSwapText':
     'When a trip gains a shape, its old stop list is drawn in red as straight lines between its stops; when it loses one, its new stop list is drawn in green.',
@@ -208,7 +219,7 @@ export const en = {
     'The Export section on the home page downloads the comparison. Both files are built in your browser.',
   'help.export.v2': 'GTFS Diff v2 (JSON)',
   'help.export.v2Text':
-    'The MobilityData GTFS Diff format: every differing row by its key, statistics per file and column, and highlights such as renamed ids, possible renames, moved stops and changed shapes. A renamed row is listed as removed and added, with a highlight naming both.',
+    'The MobilityData GTFS Diff format: every differing row by its key, statistics per file and column, and highlights such as renamed ids, possible renames, moved, merged and split stops and changed shapes. A renamed row is listed as removed and added, with a highlight naming both.',
   'help.export.summary': 'Summary (Markdown)',
   'help.export.summaryText':
     'A short report in the page language: the files with their counts and the grouped changes, up to 20 items per group.',
@@ -265,6 +276,11 @@ export const en = {
   'group.columns': 'columns: {cols}',
   'group.tripCount': 'direction {direction}: {a} trips in A, {b} in B',
   'group.movedBy': 'moved {metres} m',
+  'group.merged': '{a} merged into {b}',
+  'group.split': '{a} split into {b}',
+  'group.splitStation': '{a} split into {b}, platforms of {station}',
+  'group.apart': '{metres} m apart',
+  'group.share': '{percent}% of the trips agree',
   'group.shapeChanged': 'up to {metres} m apart, {a} points in A, {b} in B',
   'group.unknown': 'This comparison has no such group.',
   'group.files': 'In {files}',

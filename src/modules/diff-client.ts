@@ -3,7 +3,6 @@
  * `release` terminates it, which frees both feeds.
  */
 
-import { maybeProxy } from 'gtfs-zone-web-common/gtfs/feed-selection';
 import type { DiffApi, DiffReply, DiffRequest } from '../engine/diff.worker';
 import type {
   CompareInput,
@@ -11,22 +10,8 @@ import type {
   CompareProgress,
   DiffResult,
   Side,
+  SideStored,
 } from '../engine/types';
-import type { Source } from './sources';
-
-/** The worker input for a source, or null when it cannot be loaded. */
-export function compareInput(src: Source | null): CompareInput | null {
-  switch (src?.kind) {
-    case 'catalog':
-      return { url: maybeProxy(src.url, true) };
-    case 'url':
-      return { url: maybeProxy(src.url, src.useCors) };
-    case 'file':
-      return { file: src.file };
-    default:
-      return null;
-  }
-}
 
 export class CompareFailedError extends Error {
   constructor(
@@ -58,7 +43,8 @@ export class DiffSession {
     a: CompareInput,
     b: CompareInput,
     options: CompareOptions,
-    onProgress: (p: CompareProgress) => void
+    onProgress: (p: CompareProgress) => void,
+    onStored: (sides: Record<Side, SideStored>) => void
   ) {
     this.done = new Promise<DiffResult>((resolve, reject) => {
       this.worker.onmessage = (e: MessageEvent<DiffReply>) => {
@@ -70,6 +56,9 @@ export class DiffSession {
           case 'done':
             console.log('[DiffSession] compared', msg.result.timings);
             resolve(msg.result);
+            break;
+          case 'stored':
+            onStored(msg.sides);
             break;
           case 'failed':
             reject(new CompareFailedError(msg.side, msg.message));
