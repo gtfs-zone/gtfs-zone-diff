@@ -196,6 +196,9 @@ export const fr: Translation<typeof en> = {
   'help.map.moved': 'Arrêts déplacés',
   'help.map.movedText':
     "Une ligne pointillée de la position de l'arrêt dans le flux A à sa position dans le flux B.",
+  'help.map.shapeSwap': 'Tracé ajouté ou supprimé',
+  'help.map.shapeSwapText':
+    "Quand un trajet gagne un tracé, son ancienne liste d'arrêts est dessinée en rouge, en segments droits entre ses arrêts ; quand il en perd un, sa nouvelle liste d'arrêts est dessinée en vert.",
   'help.map.toggle': 'A / Les deux / B',
   'help.map.sideA': 'A',
   'help.map.sideAText':

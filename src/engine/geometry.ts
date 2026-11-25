@@ -165,6 +165,7 @@ export class GeometryReader {
         }
         if (scope.layer === undefined || scope.layer === 'shapes') {
           this.overviewShapes(out);
+          this.overviewShapeSwaps(out);
         }
         break;
       case 'stop':
@@ -303,6 +304,44 @@ export class GeometryReader {
     }
   }
 
+  /**
+   * Stop lists of trips that gained a shape (A list, red) or lost one (B
+   * list, green), once per stop list.
+   */
+  private overviewShapeSwaps(out: Builder): void {
+    for (const side of ['a', 'b'] as const) {
+      const s = this.pair[side];
+      if (!s.store.hasTable('trips')) {
+        continue;
+      }
+      s.store.forEachStopList((stops, tripIds) => {
+        let swap: string | null = null;
+        for (const t of tripIds) {
+          swap = this.shapeSwap(side, t);
+          if (swap !== null) {
+            break;
+          }
+        }
+        if (swap === null) {
+          return;
+        }
+        out.line(
+          this.stopListLine(
+            s,
+            stops.map((x) => x.stop_id)
+          ),
+          {
+            kind: 'line',
+            status: side === 'a' ? 'removed' : 'added',
+            side,
+            page: 'trip',
+            id: swap,
+          }
+        );
+      });
+    }
+  }
+
   // ---------- pages ----------
 
   private stopPage(out: Builder, id: string): void {
@@ -355,6 +394,21 @@ export class GeometryReader {
     return pts;
   }
 
+  /**
+   * The B trip id when `tripId` on `side` has no shape and its trip on the
+   * other side has one, else null.
+   */
+  private shapeSwap(side: Side, tripId: string): string | null {
+    const ids = this.reader.resolveRow('trip', tripId);
+    const ra = this.reader.row(this.pair.a, 'trips', 'trip_id', ids.a);
+    const rb = this.reader.row(this.pair.b, 'trips', 'trip_id', ids.b);
+    if (!ra || !rb) {
+      return null;
+    }
+    const [own, other] = side === 'a' ? [ra, rb] : [rb, ra];
+    return !own.shape_id && other.shape_id ? ids.b : null;
+  }
+
   /** A's stop ids as B names them, for comparing stop lists. */
   private mappedStops(ids: string[]): string {
     const map = this.renames.maps.stop_id;
@@ -386,6 +440,25 @@ export class GeometryReader {
         this.shape(out, { a: shapeA, b: null }, status, 0);
         this.shape(out, { a: null, b: shapeB }, status, 0);
       }
+      // The stop list of the side without a shape, as the before or after.
+      if (!shapeA) {
+        out.line(this.stopListLine(a, sa), {
+          kind: 'line',
+          status: 'removed',
+          side: 'a',
+          page: 'trip',
+          id,
+        });
+      }
+      if (!shapeB) {
+        out.line(this.stopListLine(b, sb), {
+          kind: 'line',
+          status: 'added',
+          side: 'b',
+          page: 'trip',
+          id,
+        });
+      }
     } else {
       const same = this.mappedStops(sa) === sb.join('\u0000');
       this.lines(out, this.stopListLine(a, sa), this.stopListLine(b, sb), {
@@ -405,41 +478,54 @@ export class GeometryReader {
 
   private routePage(out: Builder, id: string): void {
     const ids = this.reader.resolveRow('route', id);
-    type StopList = { trip: string; stops: string[] };
+    /** `swap`: the B trip of one of the list's trips that swapped a shape. */
+    type StopList = { trip: string; stops: string[]; swap: string | null };
     const per = (
-      s: SideData,
+      side: Side,
       routeId: string | null
     ): { shapes: Set<string>; lists: StopList[]; stops: Set<string> } => {
+      const s = this.pair[side];
       const shapes = new Set<string>();
-      const lists: StopList[] = [];
+      const lists = new Map<string, StopList>();
       const stops = new Set<string>();
       const seen = new Set<string>();
       if (routeId === null || !s.store.hasTable('trips')) {
-        return { shapes, lists, stops };
+        return { shapes, lists: [], stops };
       }
       for (const { row } of s.store.find('trips', 'route_id', routeId)) {
         if (row.shape_id) {
           shapes.add(row.shape_id);
         }
         const key = s.store.stopListKey(row.trip_id);
-        const listKey = `${key}:${row.shape_id ? 's' : ''}`;
-        if (key === null || seen.has(listKey)) {
+        if (key === null) {
           continue;
-        }
-        seen.add(listKey);
-        const list = s.store.tripStops(row.trip_id).map((x) => x.stop_id);
-        for (const stopId of list) {
-          stops.add(stopId);
         }
         // A trip with a shape is drawn by its shape.
         if (!row.shape_id) {
-          lists.push({ trip: row.trip_id, stops: list });
+          let list = lists.get(key);
+          if (!list) {
+            list = {
+              trip: row.trip_id,
+              stops: s.store.tripStops(row.trip_id).map((x) => x.stop_id),
+              swap: null,
+            };
+            lists.set(key, list);
+          }
+          list.swap ??= this.shapeSwap(side, row.trip_id);
+        }
+        const listKey = `${key}:${row.shape_id ? 's' : ''}`;
+        if (seen.has(listKey)) {
+          continue;
+        }
+        seen.add(listKey);
+        for (const x of s.store.tripStops(row.trip_id)) {
+          stops.add(x.stop_id);
         }
       }
-      return { shapes, lists, stops };
+      return { shapes, lists: [...lists.values()], stops };
     };
-    const a = per(this.pair.a, ids.a);
-    const b = per(this.pair.b, ids.b);
+    const a = per('a', ids.a);
+    const b = per('b', ids.b);
     for (const sh of this.reader.union('shape_id', a.shapes, b.shapes)) {
       const status: MapStatus =
         sh.a === null
@@ -449,7 +535,8 @@ export class GeometryReader {
             : mapStatus(this.reader.shapeStatus(sh));
       this.shape(out, sh, status, 0);
     }
-    // Stop lists of trips without a shape, matched by their mapped stops.
+    // Stop lists of trips without a shape, matched by their mapped stops. A
+    // list whose trips swapped a shape is the before (A) or after (B) of it.
     const listsB = new Map<string, StopList>();
     for (const list of b.lists) {
       listsB.set(list.stops.join('\u0000'), list);
@@ -461,14 +548,18 @@ export class GeometryReader {
         status,
         side,
         page: 'trip',
-        id: list.trip,
+        id: list.swap ?? list.trip,
       });
     };
     for (const list of a.lists) {
       const key = this.mappedStops(list.stops);
       const other = listsB.get(key);
-      if (other) {
-        matched.add(key);
+      if (!other) {
+        listLine('a', list, 'removed');
+        continue;
+      }
+      matched.add(key);
+      if (list.swap === null && other.swap === null) {
         this.lines(
           out,
           this.stopListLine(this.pair.a, list.stops),
@@ -476,7 +567,8 @@ export class GeometryReader {
           { status: 'unchanged', page: 'trip', id: other.trip }
         );
       } else {
-        listLine('a', list, 'removed');
+        listLine('a', list, list.swap === null ? 'unchanged' : 'removed');
+        listLine('b', other, other.swap === null ? 'unchanged' : 'added');
       }
     }
     for (const [key, list] of listsB) {

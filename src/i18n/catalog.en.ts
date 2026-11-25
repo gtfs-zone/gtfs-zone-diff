@@ -189,6 +189,9 @@ export const en = {
   'help.map.moved': 'Moved stops',
   'help.map.movedText':
     'A dashed line from where the stop is in feed A to where it is in feed B.',
+  'help.map.shapeSwap': 'Shape added or removed',
+  'help.map.shapeSwapText':
+    'When a trip gains a shape, its old stop list is drawn in red as straight lines between its stops; when it loses one, its new stop list is drawn in green.',
   'help.map.toggle': 'A / Both / B',
   'help.map.sideA': 'A',
   'help.map.sideAText':

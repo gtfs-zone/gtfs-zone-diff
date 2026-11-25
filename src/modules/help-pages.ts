@@ -156,6 +156,7 @@ const mapPage: HelpPage = {
         ['changed', dot(STATUS_COLORS.changed)],
         ['unchanged', dot(STATUS_COLORS.unchanged)],
         ['moved', ICON_MOVED],
+        ['shapeSwap', ICON_MAP],
       ]),
       subhead('help.map.toggle'),
       items('map', [
