@@ -24,6 +24,8 @@ import type {
 } from './types';
 
 type MapFeature = Feature<Point | LineString, MapFeatureProps>;
+/** Feature props before the page's focus rule sets `focus`. */
+type DrawProps = Omit<MapFeatureProps, 'focus'>;
 
 /** Overview lines are simplified to about this many metres. */
 const OVERVIEW_SIMPLIFY_M = 2;
@@ -101,6 +103,8 @@ function sameLine(x: [number, number][], y: [number, number][]): boolean {
 
 class Builder {
   readonly features: MapFeature[] = [];
+  /** Which features are the page's focus; the rest is dimmed context. */
+  focus: (props: DrawProps) => boolean = () => true;
   private west = Infinity;
   private south = Infinity;
   private east = -Infinity;
@@ -115,16 +119,16 @@ class Builder {
     }
   }
 
-  point(at: [number, number], props: MapFeatureProps): void {
+  point(at: [number, number], props: DrawProps): void {
     this.extend([at]);
     this.features.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: at },
-      properties: props,
+      properties: { ...props, focus: this.focus(props) },
     });
   }
 
-  line(points: [number, number][], props: MapFeatureProps): void {
+  line(points: [number, number][], props: DrawProps): void {
     if (points.length < 2) {
       return;
     }
@@ -132,11 +136,17 @@ class Builder {
     this.features.push({
       type: 'Feature',
       geometry: { type: 'LineString', coordinates: points },
-      properties: props,
+      properties: { ...props, focus: this.focus(props) },
     });
   }
 
   done(): MapGeometry {
+    // Nothing in focus (a route with no changes): show it all undimmed.
+    if (!this.features.some((f) => f.properties.focus)) {
+      for (const f of this.features) {
+        f.properties.focus = true;
+      }
+    }
     return {
       features: this.features,
       bounds:
@@ -208,9 +218,9 @@ export class GeometryReader {
     const pb = position(rb);
     const id = ids.b ?? ids.a ?? '';
     const props = (
-      kind: MapFeatureProps['kind'],
-      side: MapFeatureProps['side']
-    ): MapFeatureProps => ({ kind, status, side, page: 'stop', id });
+      kind: DrawProps['kind'],
+      side: DrawProps['side']
+    ): DrawProps => ({ kind, status, side, page: 'stop', id });
     const moved =
       pa !== null &&
       pb !== null &&
@@ -257,7 +267,7 @@ export class GeometryReader {
     out: Builder,
     la: [number, number][],
     lb: [number, number][],
-    props: Pick<MapFeatureProps, 'status' | 'page' | 'id'>
+    props: Pick<DrawProps, 'status' | 'page' | 'id'>
   ): void {
     if (la.length > 0 && lb.length > 0 && sameLine(la, lb)) {
       out.line(lb, { ...props, kind: 'line', side: 'both' });
@@ -346,6 +356,9 @@ export class GeometryReader {
 
   private stopPage(out: Builder, id: string): void {
     const ids = this.reader.resolveRow('stop', id);
+    // The stop and its move line; its child stops are context.
+    const own = ids.b ?? ids.a ?? '';
+    out.focus = (p) => p.id === own;
     const children = (s: SideData, stopId: string | null): string[] =>
       stopId === null || !s.store.hasTable('stops')
         ? []
@@ -417,6 +430,8 @@ export class GeometryReader {
 
   private tripPage(out: Builder, id: string): void {
     const ids = this.reader.resolveRow('trip', id);
+    // The trip's lines and its changed stops; unchanged stops are context.
+    out.focus = (p) => p.kind !== 'stop' || p.status !== 'unchanged';
     const { a, b } = this.pair;
     const ra = this.reader.row(a, 'trips', 'trip_id', ids.a);
     const rb = this.reader.row(b, 'trips', 'trip_id', ids.b);
@@ -478,6 +493,8 @@ export class GeometryReader {
 
   private routePage(out: Builder, id: string): void {
     const ids = this.reader.resolveRow('route', id);
+    // The route's changes; unchanged lines and stops are context.
+    out.focus = (p) => p.status !== 'unchanged';
     /** `swap`: the B trip of one of the list's trips that swapped a shape. */
     type StopList = { trip: string; stops: string[]; swap: string | null };
     const per = (

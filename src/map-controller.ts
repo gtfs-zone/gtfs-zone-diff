@@ -17,7 +17,7 @@ import { fitPadding } from 'gtfs-zone-web-common/map/fit-padding';
 import type { PanelResizeTarget } from 'gtfs-zone-web-common/ui/panel-resizer';
 import { CONFIG } from './config';
 import type { MapFeatureProps, MapGeometry } from './engine/types';
-import { MapLayers, type MapSide } from './modules/map-layers';
+import { MapLayers, type MapHover, type MapSide } from './modules/map-layers';
 
 interface MapView {
   center: [number, number];
@@ -125,6 +125,10 @@ export class MapController implements PanelResizeTarget {
 
   setSide(side: MapSide): void {
     this.layers?.setSide(side);
+  }
+
+  setHover(hover: MapHover | null): void {
+    this.layers?.setHover(hover);
   }
 
   private fit(always: boolean): void {

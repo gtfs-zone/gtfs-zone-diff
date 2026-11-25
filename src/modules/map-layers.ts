@@ -2,9 +2,12 @@
  * The changes on the map: one GeoJSON source, lines and stops coloured by
  * status (added green, removed red, changed amber, unchanged grey), A-side
  * geometry of a changed entity and moved-stop lines dashed, and an A / B /
- * both filter on the feed each feature comes from.
+ * both filter on the feed each feature comes from. The page's focus is drawn
+ * wider and on top, the rest dimmed; a hovered panel row does the same for
+ * its features.
  */
 
+import type { FeatureCollection } from 'geojson';
 import type {
   ExpressionSpecification,
   FilterSpecification,
@@ -23,6 +26,22 @@ const WAS_LAYER = 'diff-was';
 const STOPS_LAYER = 'diff-stops';
 const PICK_LAYERS = [STOPS_LAYER, LINES_LAYER, WAS_LAYER];
 const PICK_RADIUS_PX = 5;
+
+/** Context opacity and focus widths, as web-common's LayerManager spotlight. */
+const DIM_LINE = 0.2;
+const DIM_STOP = 0.15;
+const FOCUS_LINE_BUMP = 1.35;
+const FOCUS_CASING_BUMP = 1.3;
+
+/** Global state: some features are context, or a panel row is hovered. */
+const SPOTLIT = 'diffSpotlit';
+const HOVERING = 'diffHovering';
+
+/** A page a panel row links to, matched against feature `page` and `id`. */
+export interface MapHover {
+  page: MapFeatureProps['page'];
+  id: string;
+}
 
 export const STATUS_COLORS = {
   added: '#16a34a',
@@ -43,20 +62,38 @@ const statusColor = [
   STATUS_COLORS.unchanged,
 ] as unknown as ExpressionSpecification;
 
-/** Changes above unchanged context, additions on top. */
+/** Focus above context, changes above unchanged, additions on top. */
 const sortKey = [
-  'match',
-  ['get', 'status'],
-  'added',
-  3,
-  'removed',
-  2,
-  'changed',
-  1,
-  0,
+  '+',
+  ['case', ['get', 'focus'], 10, 0],
+  ['match', ['get', 'status'], 'added', 3, 'removed', 2, 'changed', 1, 0],
 ] as unknown as ExpressionSpecification;
 
 const isUnchanged = ['==', ['get', 'status'], 'unchanged'];
+const isHovered = ['boolean', ['feature-state', 'hover'], false];
+const isHovering = ['==', ['global-state', HOVERING], true];
+const isSpotlit = ['==', ['global-state', SPOTLIT], true];
+
+/** Full opacity for the hovered row, else for the focus while none is. */
+const opacity = (full: number, dim: number): ExpressionSpecification =>
+  [
+    'case',
+    isHovered,
+    full,
+    isHovering,
+    full * dim,
+    ['get', 'focus'],
+    full,
+    full * dim,
+  ] as unknown as ExpressionSpecification;
+
+/** Wider for the hovered row, else for the focus while some is context. */
+const bump = (factor: number): unknown[] => [
+  'case',
+  ['any', isHovered, ['all', isSpotlit, ['!', isHovering], ['get', 'focus']]],
+  factor,
+  1,
+];
 const IS_LINE = ['==', ['geometry-type'], 'LineString'];
 
 /** The A side of an entity that differs between the feeds, or a move line. */
@@ -71,15 +108,19 @@ const WAS = [
   ],
 ];
 
-const widthByZoom = (narrow: number, wide: number): ExpressionSpecification =>
+const widthByZoom = (
+  narrow: number,
+  wide: number,
+  factor = 1
+): ExpressionSpecification =>
   [
     'interpolate',
     ['linear'],
     ['zoom'],
     8,
-    ['case', isUnchanged, narrow * 0.6, narrow],
+    ['*', bump(factor), ['case', isUnchanged, narrow * 0.6, narrow]],
     16,
-    ['case', isUnchanged, wide * 0.6, wide],
+    ['*', bump(factor), ['case', isUnchanged, wide * 0.6, wide]],
   ] as unknown as ExpressionSpecification;
 
 function sideFilter(side: MapSide): unknown[] {
@@ -95,6 +136,9 @@ function sideFilter(side: MapSide): unknown[] {
 export class MapLayers {
   private data: MapGeometry | null = null;
   private side: MapSide = 'both';
+  /** Feature ids per `page:id`, for hover feature-state. */
+  private byPage = new Map<string, number[]>();
+  private hovered: number[] = [];
 
   constructor(
     private map: MapLibreMap,
@@ -108,10 +152,9 @@ export class MapLayers {
     if (map.getSource(SOURCE)) {
       return;
     }
-    map.addSource(SOURCE, {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: this.data?.features ?? [] },
-    });
+    map.addSource(SOURCE, { type: 'geojson', data: this.collection() });
+    this.hovered = [];
+    this.applyGlobalState();
     // Filters are set by applySide.
     map.addLayer({
       id: CASING_LAYER,
@@ -124,8 +167,8 @@ export class MapLayers {
       },
       paint: {
         'line-color': '#ffffff',
-        'line-opacity': 0.8,
-        'line-width': widthByZoom(4, 9),
+        'line-opacity': opacity(0.8, DIM_LINE),
+        'line-width': widthByZoom(4, 9, FOCUS_CASING_BUMP),
       },
     });
     map.addLayer({
@@ -135,7 +178,8 @@ export class MapLayers {
       layout: { 'line-join': 'round', 'line-sort-key': sortKey },
       paint: {
         'line-color': statusColor,
-        'line-width': widthByZoom(1.5, 4),
+        'line-opacity': opacity(1, DIM_LINE),
+        'line-width': widthByZoom(1.5, 4, FOCUS_LINE_BUMP),
         'line-dasharray': [2, 2],
       },
     });
@@ -150,7 +194,8 @@ export class MapLayers {
       },
       paint: {
         'line-color': statusColor,
-        'line-width': widthByZoom(2, 6),
+        'line-opacity': opacity(1, DIM_LINE),
+        'line-width': widthByZoom(2, 6, FOCUS_LINE_BUMP),
       },
     });
     // The A position of a moved stop is hollow; its B position is filled.
@@ -165,7 +210,9 @@ export class MapLayers {
       source: SOURCE,
       layout: { 'circle-sort-key': sortKey },
       paint: {
-        'circle-radius': widthByZoom(3.5, 7),
+        'circle-radius': widthByZoom(3.5, 7, FOCUS_LINE_BUMP),
+        'circle-opacity': opacity(1, DIM_STOP),
+        'circle-stroke-opacity': opacity(1, DIM_STOP),
         'circle-color': [
           'case',
           hollow,
@@ -200,8 +247,58 @@ export class MapLayers {
 
   setData(data: MapGeometry | null): void {
     this.data = data;
+    this.byPage.clear();
+    data?.features.forEach((f, i) => {
+      const key = `${f.properties.page}:${f.properties.id}`;
+      const ids = this.byPage.get(key);
+      if (ids) {
+        ids.push(i);
+      } else {
+        this.byPage.set(key, [i]);
+      }
+    });
+    this.hovered = [];
     const src = this.map.getSource<GeoJSONSource>(SOURCE);
-    src?.setData({ type: 'FeatureCollection', features: data?.features ?? [] });
+    if (src) {
+      // Ids are indexes, so the old hover state would land on new features.
+      this.map.removeFeatureState({ source: SOURCE });
+      src.setData(this.collection());
+    }
+    this.applyGlobalState();
+  }
+
+  /** Light up the features a panel row links to; null clears it. */
+  setHover(hover: MapHover | null): void {
+    if (!this.map.getSource(SOURCE)) {
+      return;
+    }
+    for (const id of this.hovered) {
+      this.map.setFeatureState({ source: SOURCE, id }, { hover: false });
+    }
+    this.hovered = hover
+      ? (this.byPage.get(`${hover.page}:${hover.id}`) ?? [])
+      : [];
+    for (const id of this.hovered) {
+      this.map.setFeatureState({ source: SOURCE, id }, { hover: true });
+    }
+    this.map.setGlobalStateProperty(HOVERING, this.hovered.length > 0);
+  }
+
+  /** The features with their index as id, for feature-state. */
+  private collection(): FeatureCollection {
+    return {
+      type: 'FeatureCollection',
+      features: (this.data?.features ?? []).map((f, i) => ({ ...f, id: i })),
+    };
+  }
+
+  private applyGlobalState(): void {
+    if (!this.map.getSource(SOURCE)) {
+      return;
+    }
+    const spotlit = this.data?.features.some((f) => !f.properties.focus);
+    this.map.setGlobalStateProperty(SPOTLIT, spotlit === true);
+    this.map.setGlobalStateProperty(HOVERING, this.hovered.length > 0);
   }
 
   setSide(side: MapSide): void {

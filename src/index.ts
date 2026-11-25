@@ -42,6 +42,7 @@ import {
 import { EntityCache } from './modules/entity-cache';
 import { runExport, setExportCap } from './modules/export-actions';
 import type { PageContext } from './modules/page-context';
+import type { MapHover } from './modules/map-layers';
 import { MapView } from './modules/map-view';
 import { createPanel, crumbsFor } from './modules/panel-view';
 import { SearchEntries } from './modules/search-entries';
@@ -126,6 +127,42 @@ const panel = createPanel(document.getElementById('panel-content')!, {
   context,
   navigate: (state) => navigate(state),
   action: (action, arg) => onAction(action, arg),
+});
+
+/** The map features a panel link opens: a stop, trip or shape page. */
+function linkHover(link: HTMLAnchorElement | null): MapHover | null {
+  const hash = link?.getAttribute('href');
+  if (!hash?.startsWith('#')) {
+    return null;
+  }
+  const state = pages.urlToPageState(hash.slice(1));
+  switch (state.type) {
+    case 'stop':
+      return { page: 'stop', id: state.stop_id };
+    case 'trip':
+      return { page: 'trip', id: state.trip_id };
+    case 'shape':
+      return { page: 'shape', id: state.shape_id };
+    default:
+      return null;
+  }
+}
+
+// Hovering a row's link lights up its features on the map.
+const panelContent = document.getElementById('panel-content')!;
+let hoverLink: HTMLAnchorElement | null = null;
+const onPanelHover = (e: MouseEvent): void => {
+  const link =
+    (e.target as Element | null)?.closest<HTMLAnchorElement>('a[href]') ?? null;
+  if (link !== hoverLink) {
+    hoverLink = link;
+    mapCtrl.setHover(linkHover(link));
+  }
+};
+panelContent.addEventListener('mouseover', onPanelHover);
+panelContent.addEventListener('mouseleave', () => {
+  hoverLink = null;
+  mapCtrl.setHover(null);
 });
 
 /** Show the current page from the top, with its trail. */

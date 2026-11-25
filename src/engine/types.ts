@@ -349,6 +349,8 @@ export interface MapFeatureProps {
   /** The page a click opens, and its id. */
   page: 'stop' | 'shape' | 'trip';
   id: string;
+  /** The page's focus, drawn on top; false is context, drawn dimmed. */
+  focus: boolean;
 }
 
 export interface MapGeometry {
