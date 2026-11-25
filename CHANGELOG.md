@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0 (2026-11-25)
+
+### Feat
+
+- **map**: draw added and removed stop lists of trips without a shape on the overview
+
 ## v0.3.0 (2026-11-25)
 
 ### Feat
