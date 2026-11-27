@@ -53,7 +53,7 @@ importers:
         version: 7946.0.16
       '@types/node':
         specifier: ^24.19.2
-        version: 24.19.2
+        version: 24.19.4
       '@types/papaparse':
         specifier: ^5.5.2
         version: 5.5.2
@@ -86,7 +86,7 @@ importers:
         version: 8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)
       vite:
         specifier: ^7.3.8
-        version: 7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)
+        version: 7.3.8(@types/node@24.19.4)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)
 
 packages:
 
@@ -925,8 +925,8 @@ packages:
   '@types/mdurl@2.0.0':
     resolution: {integrity: sha512-RGdgjQUZba5p6QEFAVx2OGb8rQDL/cPRG7GiedRzMcJ1tYnUANBncjbSB1NRGwbvjcPeikRABz2nshyPk1bhWg==}
 
-  '@types/node@24.19.2':
-    resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
+  '@types/node@24.19.4':
+    resolution: {integrity: sha512-s04odlR3ksJrLu7QLi+pddkWLD0RmSbcP9KuWn2/ozQKAp/YgwBC/6x9kJj8yAzZnGPfxePm7zm7nysVPCRagw==}
 
   '@types/papaparse@5.5.2':
     resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
@@ -1271,7 +1271,7 @@ packages:
     resolution: {integrity: sha512-+k8+/MmiBmUUWlASs4CeTkV+Qyz/FgbZxXdg9rDU62XRfJOpRaRe+nKWCGKse965jffVZ0tIu1K+R7hRvjSLfQ==}
 
   gtfs-zone-vocab@https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/a7147fcfb69f6076b636a1ac287f1d86ebdce2bc:
-    resolution: {gitHosted: true, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/a7147fcfb69f6076b636a1ac287f1d86ebdce2bc}
+    resolution: {gitHosted: true, integrity: sha512-JEkNUo2gp/v6c6XkbygHQpYmeTuxxio+61Af54lIkJ520E0woqB7Q/SZ4Coanylz1WNUfJZOTknrKPj5jRhLTw==, tarball: https://codeload.github.com/gtfs-zone/gtfs-zone-vocab/tar.gz/a7147fcfb69f6076b636a1ac287f1d86ebdce2bc}
     version: 0.2.0
 
   gtfs-zone-web-common@https://codeload.github.com/gtfs-zone/gtfs-zone-web-common/tar.gz/cc9e225fcc61ec4a69fe35766a9a81697c1aa917:
@@ -2403,13 +2403,13 @@ snapshots:
 
   '@types/mdurl@2.0.0': {}
 
-  '@types/node@24.19.2':
+  '@types/node@24.19.4':
     dependencies:
       undici-types: 7.24.6
 
   '@types/papaparse@5.5.2':
     dependencies:
-      '@types/node': 24.19.2
+      '@types/node': 24.19.4
 
   '@typescript-eslint/eslint-plugin@8.73.0(@typescript-eslint/parser@8.73.0(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3))(eslint@10.15.0(jiti@2.7.0)(supports-color@7.2.0))(supports-color@7.2.0)(typescript@5.9.3)':
     dependencies:
@@ -3188,7 +3188,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.2
-      '@types/node': 24.19.2
+      '@types/node': 24.19.4
       long: 5.3.2
 
   protocol-buffers-schema@3.6.1: {}
@@ -3328,7 +3328,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vite@7.3.8(@types/node@24.19.2)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1):
+  vite@7.3.8(@types/node@24.19.4)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1):
     dependencies:
       esbuild: 0.28.2
       fdir: 6.5.0(picomatch@4.0.7)
@@ -3337,7 +3337,7 @@ snapshots:
       rollup: 4.68.8
       tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 24.19.2
+      '@types/node': 24.19.4
       fsevents: 2.3.3
       jiti: 2.7.0
       lightningcss: 1.33.0
